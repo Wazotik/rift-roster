@@ -1,0 +1,44 @@
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editors/IDEs
+.vscode/
+.idea/
+.vs/
+
+# Logs / temp
+*.log
+logs/
+tmp/
+coverage/
+
+# ---------- Backend (.NET)
+backend/**/bin/
+backend/**/obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ---------- Frontend (Vite/Node)
+frontend/**/node_modules/
+frontend/**/dist/
+frontend/**/.vite/
+frontend/**/coverage/
+
+# ---------- Env files (keep the example)
+.env
+.env.*
+!.env.example
+
+# ---------- Database
+# keep migrations tracked; ignore ad-hoc dumps/backups
+db/backups/
+*.sql.gz
+*.dump
+*.bak
+
+# ---------- Docker
+# no named volumes here; ignore any local scratch files
+docker-data/
