@@ -11,6 +11,6 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       # any .sql/.sql.gz in this folder runs automatically on FIRST init of the volume
-      - ./db/migrations:/docker-entrypoint-initdb.d:ro
+      # - ./db/migrations:/docker-entrypoint-initdb.d:ro
 volumes:
   pgdata:

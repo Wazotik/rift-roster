@@ -1,9 +1,20 @@
-var builder = WebApplication.CreateBuilder(args);
 
+using Microsoft.EntityFrameworkCore;
+using LeagueSquadApi.Data;
+
+var builder = WebApplication.CreateBuilder(args);
 var riotApiKey = builder.Configuration["RiotApiKey"];
-var databaseUrl = builder.Configuration["DatabaseConnectionString"];
+var connectionString = builder.Configuration.GetConnectionString("DockerPostgres");
+
+
 
 // Services
+builder.Services.AddDbContext<AppDbContext>(opts =>
+{
+    //opts.UseNpgsql(connectionString);
+    opts.UseNpgsql("Host=localhost;Port=5432;Database=leaguesquad;Username=app;Password=app");
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -53,7 +64,7 @@ app.MapGet("/account/{gameName}/{tagLine}", async (string gameName, string tagLi
 
     Console.WriteLine(body);
 
-    return Results.Text(body, "applicatoin/json");
+    return Results.Text(body, "application/json");
 
 });
 
