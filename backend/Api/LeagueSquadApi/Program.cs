@@ -4,15 +4,13 @@ using LeagueSquadApi.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 var riotApiKey = builder.Configuration["RiotApiKey"];
-var connectionString = builder.Configuration.GetConnectionString("DockerPostgres");
-
+var connectionString = builder.Configuration.GetConnectionString("Postgres");
 
 
 // Services
 builder.Services.AddDbContext<AppDbContext>(opts =>
 {
-    //opts.UseNpgsql(connectionString);
-    opts.UseNpgsql("Host=localhost;Port=5432;Database=leaguesquad;Username=app;Password=app");
+    opts.UseNpgsql(connectionString);
 });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -22,7 +20,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddCors(opt =>
 {
     opt.AddPolicy("frontend", p =>
-        p.WithOrigins("http://localhost:5173") 
+        p.WithOrigins("http://localhost:5173")
          .AllowAnyHeader()
          .AllowAnyMethod());
 });
@@ -41,7 +39,11 @@ if (app.Environment.IsDevelopment())
 
 
 // Endpoints
-app.MapGet("/", () => "Server is up!");
+app.MapGet("/", () =>
+{
+    Console.WriteLine(connectionString);
+    return Results.Text("Server is up!");
+});
 
 app.MapGet("/health", () => Results.Ok(new
 {
