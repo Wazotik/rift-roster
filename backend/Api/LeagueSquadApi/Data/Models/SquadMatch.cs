@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace LeagueSquadApi.Models
+namespace LeagueSquadApi.Data.Models
 {
     [Table("sqaud_match")]
     [PrimaryKey(nameof(SquadId), nameof(MatchId))]

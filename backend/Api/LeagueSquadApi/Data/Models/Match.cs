@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace LeagueSquadApi.Models
+namespace LeagueSquadApi.Data.Models
 {
     [Table("match")]
     public class Match
@@ -20,9 +20,9 @@ namespace LeagueSquadApi.Models
         public int? Queue {  get; set; }
 
         [Column("has_timeline")]
-        public  Boolean? HasTimeline { get; set; }
+        public  bool? HasTimeline { get; set; }
 
         [Column("created_at")]
-        public DateTimeOffset CreatedAt { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }  
     }
 }

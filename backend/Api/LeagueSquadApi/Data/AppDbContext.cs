@@ -1,4 +1,4 @@
-﻿using LeagueSquadApi.Models;
+﻿using LeagueSquadApi.Data.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace LeagueSquadApi.Data
@@ -14,6 +14,17 @@ namespace LeagueSquadApi.Data
         public DbSet<Squad> Squad => Set<Squad>();
         public DbSet<SquadMember> SquadMember => Set<SquadMember>();
         public DbSet<SquadMatch> SquadMatch => Set<SquadMatch>();
+
+
+        protected override void OnModelCreating(ModelBuilder mb)
+        {
+            mb.Entity<Player>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            mb.Entity<Match>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            mb.Entity<Squad>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            mb.Entity<SquadMember>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            mb.Entity<SquadMatch>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+        }
+
     }
 
 }

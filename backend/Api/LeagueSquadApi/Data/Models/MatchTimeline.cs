@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace LeagueSquadApi.Models
+namespace LeagueSquadApi.Data.Models
 {
     [Table("match_timeline")]
     public class MatchTimeline
@@ -18,7 +18,7 @@ namespace LeagueSquadApi.Models
         public int? FrameIntervalMs { get; set; }
 
         [Column("timeline_json")]
-        public string TimelineJson { get; set; } = String.Empty;
+        public string TimelineJson { get; set; } = string.Empty;
 
     }
 }
