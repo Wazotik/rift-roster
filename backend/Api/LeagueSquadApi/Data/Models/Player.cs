@@ -19,9 +19,6 @@ namespace LeagueSquadApi.Data.Models
         [Column("region")]
         public string? Region { get; set; }
 
-        [Column("platform")]
-        public string? Platform { get; set; }
-
         [Column("created_at")]
         public DateTimeOffset CreatedAt { get; set; }
     }

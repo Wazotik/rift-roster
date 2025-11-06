@@ -49,7 +49,6 @@ if (app.Environment.IsDevelopment())
 }
 
 
-
 // Endpoints
 app.MapGet("/", () => "Server is up!");
 
@@ -59,34 +58,39 @@ app.MapGet("/health", () => Results.Ok(new
     timeUtc = DateTime.UtcNow
 }));
 
-// Get account (using tagline and game name) 
-app.MapGet("/account/{gameName}/{tagLine}", async (string gameName, string tagLine) =>
+// Find riot account (using tagline and game name) 
+app.MapGet("/account/{gameName}/{tagLine}", async (string gameName, string tagLine, IRiotClient riotClient, CancellationToken ct) =>
 {
-    using var http = new HttpClient();
+    var account = await riotClient.GetAccountByRiotIdAsync(gameName, tagLine, ct);
+    return Results.Ok(account);
+});
 
-    Console.WriteLine(riotApiKey);
-    http.DefaultRequestHeaders.Add("X-Riot-Token", riotApiKey);
-
-    var url = $"https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{Uri.EscapeDataString(gameName)}/{Uri.EscapeDataString(tagLine)}";
-
-    var res = await http.GetAsync(url);
-    var body = await res.Content.ReadAsStringAsync();
-
-    Console.WriteLine(body);
-
-    return Results.Text(body, "application/json");
-
+// Find riot account (using puuid) 
+app.MapGet("/account/{puuid}", async (string puuid, RiotClient riotClient, CancellationToken ct) =>
+{
+    var account = await riotClient.GetAccountByPuuidAsync(puuid,ct);
+    return Results.Ok(account);
 });
 
 
 // Player routes
 
+// Get all players in the system
 app.MapGet("/players", async (AppDbContext db, CancellationToken ct) =>
 {
-    var allPlayers = await db.Player.Select(p => new PlayerResponse(p.Id, p.GameName, p.TagLine, p.Region, p.Platform, p.CreatedAt)).ToListAsync(ct);
-    if (!allPlayers.Any()) return Results.NotFound();
-    return Results.Ok(allPlayers);
+    var allPlayers = await db.Player.Select(p => new PlayerResponse(p.Id, p.GameName, p.TagLine, p.Region, p.CreatedAt)).ToListAsync(ct);
+    return allPlayers.Any() == false ? Results.NotFound() : Results.Ok(allPlayers);
 });
+
+// Get a Player 
+
+app.MapGet("/players/{id}", async (string id, AppDbContext db, CancellationToken ct) =>
+{
+    var p = await db.Player.Where(p => p.Id == id).FirstOrDefaultAsync(ct);
+    return p == null ? Results.NotFound() : Results.Ok(new PlayerResponse(p.Id, p.GameName, p.TagLine, p.Region, p.CreatedAt));
+});
+
+
 
 
 // Squad Routes
@@ -94,12 +98,9 @@ app.MapGet("/players", async (AppDbContext db, CancellationToken ct) =>
 // Create a squad
 app.MapPost("/squads", async (SquadRequest req, AppDbContext db, CancellationToken ct) =>
 {
-    Squad newSquad = new Squad();
-    newSquad.Name = req.Name;
-
+    Squad newSquad = new Squad() { Name = req.Name };
     await db.AddAsync(newSquad, ct);
     await db.SaveChangesAsync(ct);
-
     return Results.Created($"/squads/{newSquad.Id}", new SquadResponse(newSquad.Id, newSquad.Name, newSquad.CreatedAt));
 });
 
@@ -108,8 +109,6 @@ app.MapPost("/squads", async (SquadRequest req, AppDbContext db, CancellationTok
 app.MapGet("/squads/{id}", async (long id, AppDbContext db, CancellationToken ct) =>
 {
     var squad = await db.Squad.Where(s => s.Id == id).FirstOrDefaultAsync(ct);
-    Console.WriteLine(squad);
-
     return squad == null ? Results.NotFound() : Results.Ok(new SquadResponse(squad.Id, squad.Name, squad.CreatedAt));
 });
 
@@ -117,8 +116,6 @@ app.MapGet("/squads/{id}", async (long id, AppDbContext db, CancellationToken ct
 app.MapGet("/squads", async (AppDbContext db, CancellationToken ct) =>
 {
     var allSquads = await db.Squad.Select(s => new SquadResponse(s.Id, s.Name, s.CreatedAt)).ToListAsync(ct);
-    Console.WriteLine(string.Join(", ", allSquads));
-
     return allSquads == null ? Results.NotFound() : Results.Ok(allSquads);
 });
 
@@ -144,29 +141,21 @@ app.MapPut("/squads/{id}", async (long id, SquadRequest req, AppDbContext db, Ca
 // Get all members of a squad
 app.MapGet("/squads/{id}/members", async (long id, AppDbContext db, CancellationToken ct) =>
 {
-
     var squadMembers = await db.SquadMember.Where(sm => sm.SquadId == id).Join(db.Player, sm => sm.Puuid, p => p.Id, (sm, p) =>
-        new SquadMemberResponse(sm.SquadId, sm.Puuid, sm.Role ?? "", sm.Alias ?? "", sm.CreatedAt, p.GameName, p.TagLine, p.Region ?? "", p.Platform ?? "")).ToListAsync(ct);
-
-
-    if (!squadMembers.Any())
-    {
-        return Results.NotFound();
-    }
-
-    return Results.Ok(squadMembers);
+        new SquadMemberResponse(sm.SquadId, sm.Puuid, sm.Role ?? "", sm.Alias ?? "", sm.CreatedAt, p.GameName, p.TagLine, p.Region ?? "")).ToListAsync(ct);
+    return squadMembers.Any() == false ? Results.NotFound() : Results.Ok(squadMembers);
 });
 
 
 // Add a member to a squad
 app.MapPost("/squads/{id}/members", async (long id, SquadMemberRequest req, IPlayerService ps, AppDbContext db, CancellationToken ct) =>
 {
-    var p = await ps.UpsertPlayerWithPuuid(req.Puuid, ct);
+    var p = await ps.UpsertPlayerWithPuuidAsync(req.Puuid, ct);
+    if (p == null) return Results.NotFound(ct);
     SquadMember sm = new SquadMember() { SquadId = id, Puuid = req.Puuid, Role = req.Role, Alias = req.Alias };
     await db.SquadMember.AddAsync(sm, ct);
     await db.SaveChangesAsync(ct);
-
-    return Results.Created($"/squads{id}/members/{sm.Puuid}", new SquadMemberResponse(sm.SquadId, sm.Puuid, sm.Role ?? "", sm.Alias ?? "", sm.CreatedAt, p.GameName, p.TagLine, p.Region ?? "", p.Platform ?? ""));
+    return Results.Created($"/squads{id}/members/{sm.Puuid}", new SquadMemberResponse(sm.SquadId, sm.Puuid, sm.Role ?? "", sm.Alias ?? "", sm.CreatedAt, p.GameName, p.TagLine, p.Region ?? ""));
 });
 
 

@@ -1,12 +1,11 @@
 ﻿using LeagueSquadApi.Data.Models;
+using LeagueSquadApi.Dtos;
 
 namespace LeagueSquadApi.Services.Interfaces
 {
     public interface IPlayerService
     {
-
-        Task<Player?> UpsertPlayerWithRiotId(string gameName, string tagLine, CancellationToken ct);
-        Task<Player?> UpsertPlayerWithPuuid(string puuid, CancellationToken ct);
-
+        Task<PlayerResponse?> UpsertPlayerWithRiotIdAsync(string gameName, string tagLine, CancellationToken ct);
+        Task<PlayerResponse?> UpsertPlayerWithPuuidAsync(string puuid, CancellationToken ct);
     }
 }
