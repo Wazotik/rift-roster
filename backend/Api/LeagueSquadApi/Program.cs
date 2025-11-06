@@ -59,16 +59,16 @@ app.MapGet("/health", () => Results.Ok(new
 }));
 
 // Find riot account (using tagline and game name) 
-app.MapGet("/account/{gameName}/{tagLine}", async (string gameName, string tagLine, IRiotClient riotClient, CancellationToken ct) =>
+app.MapGet("/riot-account/{gameName}/{tagLine}", async (string gameName, string tagLine, IRiotClient riotClient, CancellationToken ct) =>
 {
     var account = await riotClient.GetAccountByRiotIdAsync(gameName, tagLine, ct);
     return Results.Ok(account);
 });
 
 // Find riot account (using puuid) 
-app.MapGet("/account/{puuid}", async (string puuid, RiotClient riotClient, CancellationToken ct) =>
+app.MapGet("/riot-account/{puuid}", async (string puuid, IRiotClient riotClient, CancellationToken ct) =>
 {
-    var account = await riotClient.GetAccountByPuuidAsync(puuid,ct);
+    var account = await riotClient.GetAccountByPuuidAsync(puuid, ct);
     return Results.Ok(account);
 });
 

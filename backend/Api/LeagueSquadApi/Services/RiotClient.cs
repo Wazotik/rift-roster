@@ -21,7 +21,7 @@ namespace LeagueSquadApi.Services
             var bodyCore = await resCore.Content.ReadFromJsonAsync<RiotAccountCoreResponse>(ct);
             if (bodyCore == null) throw new InvalidOperationException("Successful response but no usable payload");
 
-            var urlRegion = $"{http.BaseAddress}account/v1/region/by-game/lol/{Uri.EscapeDataString(bodyCore.Puuid)}";
+            var urlRegion = $"{http.BaseAddress}account/v1/region/by-game/lol/by-puuid/{Uri.EscapeDataString(bodyCore.Puuid)}";
             var resRegion = await http.GetAsync(urlRegion, ct);
             resRegion.EnsureSuccessStatusCode();
             var bodyRegion = await resRegion.Content.ReadFromJsonAsync<RiotAccountRegionResponse>(ct);
@@ -31,13 +31,14 @@ namespace LeagueSquadApi.Services
         }
         public async Task<RiotAccountResponse?> GetAccountByPuuidAsync(string puuid, CancellationToken ct)
         {
-            var urlCore = $"{http.BaseAddress}account/v1/accounts/by-riot-id/{Uri.EscapeDataString(puuid)}";
+            var urlCore = $"{http.BaseAddress}account/v1/accounts/by-puuid/{Uri.EscapeDataString(puuid)}";
             var resCore = await http.GetAsync(urlCore, ct);
             resCore.EnsureSuccessStatusCode();
             var bodyCore = await resCore.Content.ReadFromJsonAsync<RiotAccountCoreResponse>(ct);
             if (bodyCore == null) throw new InvalidOperationException("Successful response but no usable payload");
 
-            var urlRegion = $"{http.BaseAddress}account/v1/region/by-game/lol/{Uri.EscapeDataString(bodyCore.Puuid)}";
+            var urlRegion = $"{http.BaseAddress}account/v1/region/by-game/lol/by-puuid/{Uri.EscapeDataString(bodyCore.Puuid)}";
+            Console.WriteLine(urlRegion);
             var resRegion = await http.GetAsync(urlRegion, ct);
             resRegion.EnsureSuccessStatusCode();
             var bodyRegion = await resRegion.Content.ReadFromJsonAsync<RiotAccountRegionResponse>(ct);

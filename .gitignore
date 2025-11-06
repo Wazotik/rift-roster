@@ -1,44 +1,100 @@
+# ==========================
+# Global settings
+# ==========================
 # OS junk
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Editors/IDEs
+# IDEs
 .vscode/
 .idea/
-.vs/
-
-# Logs / temp
-*.log
-logs/
-tmp/
-coverage/
-
-# ---------- Backend (.NET)
-backend/**/bin/
-backend/**/obj/
-*.user
 *.suo
+*.user
 *.userosscache
 *.sln.docstates
 
-# ---------- Frontend (Vite/Node)
-frontend/**/node_modules/
-frontend/**/dist/
-frontend/**/.vite/
-frontend/**/coverage/
+# ==========================
+# Backend (.NET / C#)
+# ==========================
+# Build outputs
+bin/
+obj/
+[Bb]uild/
+[Ll]og/
+[Ll]ogs/
 
-# ---------- Env files (keep the example)
-.env
-.env.*
-!.env.example
+# Entity Framework / Migrations cache
+Migrations/obj/
+*.dbmdl
 
-# ---------- Database
-# keep migrations tracked; ignore ad-hoc dumps/backups
-db/backups/
-*.sql.gz
-*.dump
+# Visual Studio
+.vs/
+
+# User-specific files
+*.userprefs
+*.user
+*.rsuser
+
+# Backup & temporary files
+*.tmp
 *.bak
+*.swp
+*.orig
 
-# ---------- Docker
-# no named volumes here; ignore any local scratch files
-docker-data/
+# Configuration secrets
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+
+# ==========================
+# Frontend (Node / React / Vue / etc.)
+# ==========================
+frontend/node_modules/
+frontend/.next/
+frontend/.nuxt/
+frontend/dist/
+frontend/build/
+frontend/.cache/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.production.local
+.env.test.local
+.env.example
+
+# ==========================
+# Docker
+# ==========================
+# Local volumes and generated files
+**/docker-data/
+**/docker-volume/
+**/tmp/
+**/logs/
+
+# ==========================
+# Database seeds / dumps
+# ==========================
+db/seed/*.log
+db/seed/*.bak
+db/seed/*.tmp
+
+# ==========================
+# OS & Editor backups
+# ==========================
+*.bak
+*.tmp
+*.swp
+*.lock
+
+# ==========================
+# Other
+# ==========================
+# Ignore compiled files from tooling
+*.pyc
+__pycache__/
