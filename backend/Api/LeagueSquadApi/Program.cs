@@ -2,8 +2,11 @@ using Microsoft.EntityFrameworkCore;
 using LeagueSquadApi.Data;
 using LeagueSquadApi.Data.Models;
 using LeagueSquadApi.Dtos;
+using LeagueSquadApi.Dtos.Enums;
 using LeagueSquadApi.Services;
 using LeagueSquadApi.Services.Interfaces;
+using LeagueSquadApi.Endpoints;
+using System.Net.WebSockets;
 
 var builder = WebApplication.CreateBuilder(args);
 var riotApiKey = builder.Configuration["RiotApiKey"];
@@ -24,6 +27,7 @@ builder.Services.AddHttpClient<IRiotClient, RiotClient>(http =>
 });
 
 builder.Services.AddScoped<IPlayerService, PlayerService>();
+builder.Services.AddScoped<ISquadService, SquadService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -75,20 +79,20 @@ app.MapGet("/riot-account/{puuid}", async (string puuid, IRiotClient riotClient,
 
 // Player routes
 
-// Get all players in the system
-app.MapGet("/players", async (AppDbContext db, CancellationToken ct) =>
-{
-    var allPlayers = await db.Player.Select(p => new PlayerResponse(p.Id, p.GameName, p.TagLine, p.Region, p.CreatedAt)).ToListAsync(ct);
-    return allPlayers.Any() == false ? Results.NotFound() : Results.Ok(allPlayers);
-});
-
 // Get a Player 
-
-app.MapGet("/players/{id}", async (string id, AppDbContext db, CancellationToken ct) =>
+app.MapGet("/players/{id}", async (string id, IPlayerService ps, CancellationToken ct) =>
 {
-    var p = await db.Player.Where(p => p.Id == id).FirstOrDefaultAsync(ct);
-    return p == null ? Results.NotFound() : Results.Ok(new PlayerResponse(p.Id, p.GameName, p.TagLine, p.Region, p.CreatedAt));
+    var res = await ps.GetAsync(id, ct);
+    return ResolveServiceResult<PlayerResponse>.ToHttp(res);
 });
+
+// Get all players in the system
+app.MapGet("/players", async (IPlayerService ps, CancellationToken ct) =>
+{
+    var res = await ps.GetAllAsync(ct);
+    return ResolveServiceResult<List<PlayerResponse>>.ToHttp(res);
+});
+
 
 
 
@@ -96,80 +100,69 @@ app.MapGet("/players/{id}", async (string id, AppDbContext db, CancellationToken
 // Squad Routes
 
 // Create a squad
-app.MapPost("/squads", async (SquadRequest req, AppDbContext db, CancellationToken ct) =>
+app.MapPost("/squads", async (SquadRequest req, ISquadService ss, CancellationToken ct) =>
 {
-    Squad newSquad = new Squad() { Name = req.Name };
-    await db.AddAsync(newSquad, ct);
-    await db.SaveChangesAsync(ct);
-    return Results.Created($"/squads/{newSquad.Id}", new SquadResponse(newSquad.Id, newSquad.Name, newSquad.CreatedAt));
+    var res = await ss.AddAsync(req.Name, ct);
+    return ResolveServiceResult<SquadResponse>.ToHttp(res, $"/squads/{res?.Value?.Id}");
 });
 
 
 // Get squad using id
-app.MapGet("/squads/{id}", async (long id, AppDbContext db, CancellationToken ct) =>
+app.MapGet("/squads/{id}", async (long id, ISquadService ss, CancellationToken ct) =>
 {
-    var squad = await db.Squad.Where(s => s.Id == id).FirstOrDefaultAsync(ct);
-    return squad == null ? Results.NotFound() : Results.Ok(new SquadResponse(squad.Id, squad.Name, squad.CreatedAt));
+    var res = await ss.GetAsync(id, ct);
+    return ResolveServiceResult<SquadResponse>.ToHttp(res);
 });
 
 // Get all squads 
-app.MapGet("/squads", async (AppDbContext db, CancellationToken ct) =>
+app.MapGet("/squads", async (ISquadService ss, CancellationToken ct) =>
 {
-    var allSquads = await db.Squad.Select(s => new SquadResponse(s.Id, s.Name, s.CreatedAt)).ToListAsync(ct);
-    return allSquads == null ? Results.NotFound() : Results.Ok(allSquads);
+    var res = await ss.GetAllAsync(ct);
+    return ResolveServiceResult<List<SquadResponse>>.ToHttp(res);
 });
-
 
 // Update a squads details
-app.MapPut("/squads/{id}", async (long id, SquadRequest req, AppDbContext db, CancellationToken ct) =>
+app.MapPut("/squads/{id}", async (long id, ISquadService ss, SquadRequest req, CancellationToken ct) =>
 {
-    var squad = await db.Squad.Where(s => s.Id == id).FirstOrDefaultAsync(ct);
-    if (squad != null)
-    {
-        squad.Name = req.Name;
-        await db.SaveChangesAsync(ct);
-    }
-    else
-    {
-        return Results.NotFound();
-    }
-
-    return Results.Ok(new SquadResponse(squad.Id, squad.Name, squad.CreatedAt));
+    var res = await ss.UpdateAsync(id, req.Name, ct);
+    return ResolveServiceResult<SquadResponse>.ToHttp(res);
 });
 
+// Delete a squad 
+app.MapDelete("/squads/{id}", async (long id, ISquadService ss, CancellationToken ct) =>
+{
+    var res = await ss.DeleteAsync(id, ct);
+    return ResolveServiceResult.ToHttp(res);
+});
 
 // Get all members of a squad
-app.MapGet("/squads/{id}/members", async (long id, AppDbContext db, CancellationToken ct) =>
+app.MapGet("/squads/{id}/members", async (long id, ISquadService ss, CancellationToken ct) =>
 {
-    var squadMembers = await db.SquadMember.Where(sm => sm.SquadId == id).Join(db.Player, sm => sm.Puuid, p => p.Id, (sm, p) =>
-        new SquadMemberResponse(sm.SquadId, sm.Puuid, sm.Role ?? "", sm.Alias ?? "", sm.CreatedAt, p.GameName, p.TagLine, p.Region ?? "")).ToListAsync(ct);
-    return squadMembers.Any() == false ? Results.NotFound() : Results.Ok(squadMembers);
+    var res = await ss.GetAllMembersAsync(id, ct);
+    return ResolveServiceResult<List<SquadMemberResponse>>.ToHttp(res);
 });
-
 
 // Add a member to a squad
-app.MapPost("/squads/{id}/members", async (long id, SquadMemberRequest req, IPlayerService ps, AppDbContext db, CancellationToken ct) =>
+app.MapPost("/squads/{id}/members", async (long id, SquadMemberRequest req, IPlayerService ps, ISquadService ss, CancellationToken ct) =>
 {
-    var p = await ps.UpsertPlayerWithPuuidAsync(req.Puuid, ct);
-    if (p == null) return Results.NotFound(ct);
-    SquadMember sm = new SquadMember() { SquadId = id, Puuid = req.Puuid, Role = req.Role, Alias = req.Alias };
-    await db.SquadMember.AddAsync(sm, ct);
-    await db.SaveChangesAsync(ct);
-    return Results.Created($"/squads{id}/members/{sm.Puuid}", new SquadMemberResponse(sm.SquadId, sm.Puuid, sm.Role ?? "", sm.Alias ?? "", sm.CreatedAt, p.GameName, p.TagLine, p.Region ?? ""));
+    var res = await ss.AddMemberAsync(id, req, ps, ct);
+    return ResolveServiceResult<SquadMemberResponse>.ToHttp(res, $"/squads/{id}/members/{res?.Value?.Puuid}");
 });
-
 
 // Get a member from a squad
-app.MapGet("/squads/{id}/members{puuid}", async (long id, string puuid, AppDbContext db, CancellationToken ct) =>
+app.MapGet("/squads/{id}/members/{puuid}", async (long id, string puuid, ISquadService ss, CancellationToken ct) =>
 {
-    var sm = await db.SquadMember.Where(sm => sm.Puuid == puuid && sm.SquadId == id).FirstOrDefaultAsync(ct);
-
-    return sm == null ? Results.NotFound() : Results.Ok(sm);
+    var res = await ss.GetMemberAsync(id, puuid, ct);
+    return ResolveServiceResult<SquadMemberResponse>.ToHttp(res);
 });
-
 
 
 // Delete a member from a squad
+app.MapDelete("/squads/{id}/members/{puuid}", async (long id, string puuid, ISquadService ss, CancellationToken ct) =>
+{
+    var res = await ss.DeleteMemberAsync(id, puuid, ct);
+    return ResolveServiceResult.ToHttp(res);
+});
 
 
 

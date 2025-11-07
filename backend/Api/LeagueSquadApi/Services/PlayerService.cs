@@ -2,6 +2,8 @@
 using LeagueSquadApi.Data.Models;
 using LeagueSquadApi.Services.Interfaces;
 using LeagueSquadApi.Dtos;
+using LeagueSquadApi.Dtos.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace LeagueSquadApi.Services
 {
@@ -16,11 +18,11 @@ namespace LeagueSquadApi.Services
             this.riotClient = riotClient;
         }
 
-        public async Task<PlayerResponse?> UpsertPlayerWithRiotIdAsync(string gameName, string tagLine, CancellationToken ct)
+        public async Task<ServiceResult<PlayerResponse>> UpsertWithRiotIdAsync(string gameName, string tagLine, CancellationToken ct)
         {
             Player p;
             var riotAccount = await riotClient.GetAccountByRiotIdAsync(gameName, tagLine, ct);
-            if (riotAccount == null) return null;
+            if (riotAccount == null) return ServiceResult<PlayerResponse>.Fail(ResultStatus.NotFound);
             var existingPlayer = await db.Player.FindAsync(riotAccount.Puuid, ct);
             if (existingPlayer == null)
             {
@@ -33,19 +35,20 @@ namespace LeagueSquadApi.Services
                 existingPlayer.GameName = riotAccount.GameName;
                 existingPlayer.TagLine = riotAccount.TagLine;
                 existingPlayer.Region = riotAccount.Region;
-
-                p = existingPlayer;
                 await db.SaveChangesAsync(ct);
+                p = existingPlayer;
             }
-            return new PlayerResponse(p.Id, p.GameName, p.TagLine, p.Region, p.CreatedAt);
+            return ServiceResult<PlayerResponse>.Ok(new PlayerResponse(p.Id, p.GameName, p.TagLine, p.Region, p.CreatedAt));
         }
 
 
-        public async Task<PlayerResponse?> UpsertPlayerWithPuuidAsync(string puuid, CancellationToken ct)
+        public async Task<ServiceResult<PlayerResponse>> UpsertWithPuuidAsync(string puuid, CancellationToken ct)
         {
             Player p;
+
             var riotAccount = await riotClient.GetAccountByPuuidAsync(puuid, ct);
-            if (riotAccount == null) return null;
+            if (riotAccount == null) return ServiceResult<PlayerResponse>.Fail(ResultStatus.NotFound);
+
             var existingPlayer = await db.Player.FindAsync(riotAccount.Puuid, ct);
             if (existingPlayer == null)
             {
@@ -61,7 +64,20 @@ namespace LeagueSquadApi.Services
                 p = existingPlayer;
                 await db.SaveChangesAsync(ct);
             }
-            return new PlayerResponse(p.Id, p.GameName, p.TagLine, p.Region, p.CreatedAt);
+            return ServiceResult<PlayerResponse>.Ok(new PlayerResponse(p.Id, p.GameName, p.TagLine, p.Region, p.CreatedAt));
+        }
+
+        public async Task<ServiceResult<PlayerResponse>> GetAsync(string id, CancellationToken ct)
+        {
+            var p = await db.Player.Where(p => p.Id == id).FirstOrDefaultAsync(ct);
+            if (p == null) return ServiceResult<PlayerResponse>.Fail(ResultStatus.NotFound);
+            return ServiceResult<PlayerResponse>.Ok(new PlayerResponse(p.Id, p.GameName, p.TagLine, p.Region, p.CreatedAt));
+        }
+
+        public async Task<ServiceResult<List<PlayerResponse>>> GetAllAsync(CancellationToken ct)
+        {
+            var players = await db.Player.Select(p => new PlayerResponse(p.Id, p.GameName, p.TagLine, p.Region, p.CreatedAt)).ToListAsync(ct);
+            return ServiceResult<List<PlayerResponse>>.Ok(players);
         }
     }
 }

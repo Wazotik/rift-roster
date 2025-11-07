@@ -19,13 +19,13 @@ namespace LeagueSquadApi.Services
             var resCore = await http.GetAsync(urlCore, ct);
             resCore.EnsureSuccessStatusCode();
             var bodyCore = await resCore.Content.ReadFromJsonAsync<RiotAccountCoreResponse>(ct);
-            if (bodyCore == null) throw new InvalidOperationException("Successful response but no usable payload");
+            if (bodyCore == null) return null;
 
             var urlRegion = $"{http.BaseAddress}account/v1/region/by-game/lol/by-puuid/{Uri.EscapeDataString(bodyCore.Puuid)}";
             var resRegion = await http.GetAsync(urlRegion, ct);
             resRegion.EnsureSuccessStatusCode();
             var bodyRegion = await resRegion.Content.ReadFromJsonAsync<RiotAccountRegionResponse>(ct);
-            if (bodyRegion == null) throw new InvalidOperationException("Successful response but no usable payload");
+            if (bodyRegion == null) return null;
 
             return new RiotAccountResponse(bodyCore.Puuid, bodyCore.GameName, bodyCore.TagLine, bodyRegion.Region);
         }
@@ -35,14 +35,14 @@ namespace LeagueSquadApi.Services
             var resCore = await http.GetAsync(urlCore, ct);
             resCore.EnsureSuccessStatusCode();
             var bodyCore = await resCore.Content.ReadFromJsonAsync<RiotAccountCoreResponse>(ct);
-            if (bodyCore == null) throw new InvalidOperationException("Successful response but no usable payload");
+            if (bodyCore == null) return null; 
 
             var urlRegion = $"{http.BaseAddress}account/v1/region/by-game/lol/by-puuid/{Uri.EscapeDataString(bodyCore.Puuid)}";
             Console.WriteLine(urlRegion);
             var resRegion = await http.GetAsync(urlRegion, ct);
             resRegion.EnsureSuccessStatusCode();
             var bodyRegion = await resRegion.Content.ReadFromJsonAsync<RiotAccountRegionResponse>(ct);
-            if (bodyRegion == null) throw new InvalidOperationException("Successful response but no usable payload");
+            if (bodyRegion == null) return null;
 
             return new RiotAccountResponse(bodyCore.Puuid, bodyCore.GameName, bodyCore.TagLine, bodyRegion.Region);
         }

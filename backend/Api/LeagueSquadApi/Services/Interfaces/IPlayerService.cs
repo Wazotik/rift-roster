@@ -5,7 +5,9 @@ namespace LeagueSquadApi.Services.Interfaces
 {
     public interface IPlayerService
     {
-        Task<PlayerResponse?> UpsertPlayerWithRiotIdAsync(string gameName, string tagLine, CancellationToken ct);
-        Task<PlayerResponse?> UpsertPlayerWithPuuidAsync(string puuid, CancellationToken ct);
+        Task<ServiceResult<PlayerResponse>> GetAsync(string id, CancellationToken ct);
+        Task<ServiceResult<List<PlayerResponse>>> GetAllAsync(CancellationToken ct);
+        Task<ServiceResult<PlayerResponse>> UpsertWithRiotIdAsync(string gameName, string tagLine, CancellationToken ct);
+        Task<ServiceResult<PlayerResponse>> UpsertWithPuuidAsync(string puuid, CancellationToken ct);
     }
 }
