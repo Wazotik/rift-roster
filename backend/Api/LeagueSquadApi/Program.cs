@@ -83,14 +83,14 @@ app.MapGet("/riot-account/{puuid}", async (string puuid, IRiotClient riotClient,
 app.MapGet("/players/{id}", async (string id, IPlayerService ps, CancellationToken ct) =>
 {
     var res = await ps.GetAsync(id, ct);
-    return ResolveServiceResult<PlayerResponse>.ToHttp(res);
+    return ResultStatusToIResultMapper<PlayerResponse>.ToHttp(res);
 });
 
 // Get all players in the system
 app.MapGet("/players", async (IPlayerService ps, CancellationToken ct) =>
 {
     var res = await ps.GetAllAsync(ct);
-    return ResolveServiceResult<List<PlayerResponse>>.ToHttp(res);
+    return ResultStatusToIResultMapper<List<PlayerResponse>>.ToHttp(res);
 });
 
 
@@ -103,7 +103,7 @@ app.MapGet("/players", async (IPlayerService ps, CancellationToken ct) =>
 app.MapPost("/squads", async (SquadRequest req, ISquadService ss, CancellationToken ct) =>
 {
     var res = await ss.AddAsync(req.Name, ct);
-    return ResolveServiceResult<SquadResponse>.ToHttp(res, $"/squads/{res?.Value?.Id}");
+    return ResultStatusToIResultMapper<SquadResponse>.ToHttp(res, $"/squads/{res?.Value?.Id}");
 });
 
 
@@ -111,49 +111,49 @@ app.MapPost("/squads", async (SquadRequest req, ISquadService ss, CancellationTo
 app.MapGet("/squads/{id}", async (long id, ISquadService ss, CancellationToken ct) =>
 {
     var res = await ss.GetAsync(id, ct);
-    return ResolveServiceResult<SquadResponse>.ToHttp(res);
+    return ResultStatusToIResultMapper<SquadResponse>.ToHttp(res);
 });
 
 // Get all squads 
 app.MapGet("/squads", async (ISquadService ss, CancellationToken ct) =>
 {
     var res = await ss.GetAllAsync(ct);
-    return ResolveServiceResult<List<SquadResponse>>.ToHttp(res);
+    return ResultStatusToIResultMapper<List<SquadResponse>>.ToHttp(res);
 });
 
 // Update a squads details
 app.MapPut("/squads/{id}", async (long id, ISquadService ss, SquadRequest req, CancellationToken ct) =>
 {
     var res = await ss.UpdateAsync(id, req.Name, ct);
-    return ResolveServiceResult<SquadResponse>.ToHttp(res);
+    return ResultStatusToIResultMapper<SquadResponse>.ToHttp(res);
 });
 
 // Delete a squad 
 app.MapDelete("/squads/{id}", async (long id, ISquadService ss, CancellationToken ct) =>
 {
     var res = await ss.DeleteAsync(id, ct);
-    return ResolveServiceResult.ToHttp(res);
+    return ResultStatusToIResultMapper.ToHttp(res);
 });
 
 // Get all members of a squad
 app.MapGet("/squads/{id}/members", async (long id, ISquadService ss, CancellationToken ct) =>
 {
     var res = await ss.GetAllMembersAsync(id, ct);
-    return ResolveServiceResult<List<SquadMemberResponse>>.ToHttp(res);
+    return ResultStatusToIResultMapper<List<SquadMemberResponse>>.ToHttp(res);
 });
 
 // Add a member to a squad
 app.MapPost("/squads/{id}/members", async (long id, SquadMemberRequest req, IPlayerService ps, ISquadService ss, CancellationToken ct) =>
 {
     var res = await ss.AddMemberAsync(id, req, ps, ct);
-    return ResolveServiceResult<SquadMemberResponse>.ToHttp(res, $"/squads/{id}/members/{res?.Value?.Puuid}");
+    return ResultStatusToIResultMapper<SquadMemberResponse>.ToHttp(res, $"/squads/{id}/members/{res?.Value?.Puuid}");
 });
 
 // Get a member from a squad
 app.MapGet("/squads/{id}/members/{puuid}", async (long id, string puuid, ISquadService ss, CancellationToken ct) =>
 {
     var res = await ss.GetMemberAsync(id, puuid, ct);
-    return ResolveServiceResult<SquadMemberResponse>.ToHttp(res);
+    return ResultStatusToIResultMapper<SquadMemberResponse>.ToHttp(res);
 });
 
 
@@ -161,12 +161,8 @@ app.MapGet("/squads/{id}/members/{puuid}", async (long id, string puuid, ISquadS
 app.MapDelete("/squads/{id}/members/{puuid}", async (long id, string puuid, ISquadService ss, CancellationToken ct) =>
 {
     var res = await ss.DeleteMemberAsync(id, puuid, ct);
-    return ResolveServiceResult.ToHttp(res);
+    return ResultStatusToIResultMapper.ToHttp(res);
 });
-
-
-
-
 
 
 

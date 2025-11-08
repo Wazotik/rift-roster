@@ -3,7 +3,7 @@ using LeagueSquadApi.Dtos.Enums;
 
 namespace LeagueSquadApi.Endpoints
 {
-    public static class ResolveServiceResult<T>
+    public static class ResultStatusToIResultMapper<T>
     {
         public static IResult ToHttp(ServiceResult<T> serviceResult, string uri = "")
         {
@@ -34,7 +34,7 @@ namespace LeagueSquadApi.Endpoints
         }
     }
 
-    public static class ResolveServiceResult
+    public static class ResultStatusToIResultMapper
     {
         public static IResult ToHttp(ServiceResult serviceResult)
         {

@@ -6,7 +6,7 @@ namespace LeagueSquadApi.Dtos
     {
         public ResultStatus? Status { get; init; }
         public bool IsSuccessful { 
-            get { return Status == ResultStatus.Success; } 
+            get { return Status == ResultStatus.Success || Status == ResultStatus.Created || Status == ResultStatus.NoContent; } 
         }
 
 
@@ -28,7 +28,7 @@ namespace LeagueSquadApi.Dtos
         public ResultStatus? Status { get; init; }
         public T? Value { get; init; }
         public bool IsSuccessful { 
-            get { return Status == ResultStatus.Success; } 
+            get { return Status == ResultStatus.Success || Status == ResultStatus.Created || Status == ResultStatus.NoContent; } 
         }
 
 
