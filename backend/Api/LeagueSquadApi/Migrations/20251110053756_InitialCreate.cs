@@ -17,11 +17,14 @@ namespace LeagueSquadApi.Migrations
                 columns: table => new
                 {
                     match_id = table.Column<string>(type: "text", nullable: false),
-                    start_time = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    patch = table.Column<string>(type: "text", nullable: true),
-                    queue = table.Column<int>(type: "integer", nullable: true),
-                    has_timeline = table.Column<bool>(type: "boolean", nullable: true),
-                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    queue_id = table.Column<int>(type: "integer", nullable: false),
+                    game_start = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    game_end = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    duration_seconds = table.Column<int>(type: "integer", nullable: false),
+                    mode = table.Column<string>(type: "text", nullable: false),
+                    game_type = table.Column<string>(type: "text", nullable: false),
+                    map_id = table.Column<int>(type: "integer", nullable: false),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -33,9 +36,7 @@ namespace LeagueSquadApi.Migrations
                 columns: table => new
                 {
                     match_id = table.Column<string>(type: "text", nullable: false),
-                    fetched_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    frame_interval_ms = table.Column<int>(type: "integer", nullable: true),
-                    timeline_json = table.Column<string>(type: "text", nullable: false)
+                    timeline_json = table.Column<string>(type: "jsonb", nullable: false, defaultValueSql: "'[]'::jsonb")
                 },
                 constraints: table =>
                 {
@@ -54,7 +55,9 @@ namespace LeagueSquadApi.Migrations
                     champion_id = table.Column<int>(type: "integer", nullable: true),
                     kills = table.Column<int>(type: "integer", nullable: false),
                     deaths = table.Column<int>(type: "integer", nullable: false),
-                    assists = table.Column<int>(type: "integer", nullable: false)
+                    assists = table.Column<int>(type: "integer", nullable: false),
+                    win = table.Column<bool>(type: "boolean", nullable: false),
+                    participants_json = table.Column<string>(type: "jsonb", nullable: false, defaultValueSql: "'[]'::jsonb")
                 },
                 constraints: table =>
                 {
@@ -69,26 +72,11 @@ namespace LeagueSquadApi.Migrations
                     game_name = table.Column<string>(type: "text", nullable: false),
                     tag_line = table.Column<string>(type: "text", nullable: false),
                     region = table.Column<string>(type: "text", nullable: true),
-                    platform = table.Column<string>(type: "text", nullable: true),
-                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    created_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_player", x => x.puuid);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "sqaud_match",
-                columns: table => new
-                {
-                    squad_id = table.Column<long>(type: "bigint", nullable: false),
-                    match_id = table.Column<string>(type: "text", nullable: false),
-                    reason_for_addition = table.Column<string>(type: "text", nullable: true),
-                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_sqaud_match", x => new { x.squad_id, x.match_id });
                 });
 
             migrationBuilder.CreateTable(
@@ -98,7 +86,8 @@ namespace LeagueSquadApi.Migrations
                     squad_id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     name = table.Column<string>(type: "text", nullable: false),
-                    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    squad_match_count = table.Column<int>(type: "integer", nullable: false),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
@@ -106,17 +95,32 @@ namespace LeagueSquadApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "squad_member",
+                name: "squad_match",
                 columns: table => new
                 {
                     squad_id = table.Column<long>(type: "bigint", nullable: false),
                     match_id = table.Column<string>(type: "text", nullable: false),
-                    alias = table.Column<string>(type: "text", nullable: true),
-                    added_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    reason_for_addition = table.Column<string>(type: "text", nullable: true),
+                    created_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_squad_member", x => new { x.squad_id, x.match_id });
+                    table.PrimaryKey("PK_squad_match", x => new { x.squad_id, x.match_id });
+                });
+
+            migrationBuilder.CreateTable(
+                name: "squad_member",
+                columns: table => new
+                {
+                    squad_id = table.Column<long>(type: "bigint", nullable: false),
+                    puuid = table.Column<string>(type: "text", nullable: false),
+                    role = table.Column<string>(type: "text", nullable: true),
+                    alias = table.Column<string>(type: "text", nullable: true),
+                    added_at = table.Column<DateTimeOffset>(type: "timestamptz", nullable: false, defaultValueSql: "now()")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_squad_member", x => new { x.squad_id, x.puuid });
                 });
 
             migrationBuilder.CreateIndex(
@@ -142,10 +146,10 @@ namespace LeagueSquadApi.Migrations
                 name: "player");
 
             migrationBuilder.DropTable(
-                name: "sqaud_match");
+                name: "squad");
 
             migrationBuilder.DropTable(
-                name: "squad");
+                name: "squad_match");
 
             migrationBuilder.DropTable(
                 name: "squad_member");

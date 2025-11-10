@@ -23,7 +23,19 @@ namespace LeagueSquadApi.Data
             mb.Entity<Squad>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
             mb.Entity<SquadMember>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
             mb.Entity<SquadMatch>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+
+            mb.Entity<Participant>()
+              .Property(x => x.ParticipantsJson)
+              .HasColumnType("jsonb")
+              .HasDefaultValueSql("'[]'::jsonb");
+
+            mb.Entity<MatchTimeline>()
+              .Property(x => x.TimelineJson)
+              .HasColumnType("jsonb")
+              .HasDefaultValueSql("'[]'::jsonb");
         }
+
+
 
     }
 

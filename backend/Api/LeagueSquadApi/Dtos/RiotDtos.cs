@@ -1,5 +1,4 @@
-﻿using System.Net;
-
+﻿
 namespace LeagueSquadApi.Dtos
 {
     public class RiotDtos
@@ -7,6 +6,17 @@ namespace LeagueSquadApi.Dtos
         public record RiotAccountResponse(string Puuid, string GameName, string TagLine, string? Region);
         public record RiotAccountCoreResponse(string Puuid, string GameName, string TagLine);
         public record RiotAccountRegionResponse(string Puuid, string Game, string Region);
+        public record RiotMatchResponse(string MatchId, int QueueId, List<string> ParticipantsIds, List<RiotMatchParticipant> Participants, string ParticipantsJson, string TimelineJson, DateTimeOffset GameStart, DateTimeOffset GameEnd, int DurationSeconds, string Mode, string GameType, int MapId);
+        public record RiotMatchDto(RiotMatchMetadata Metadata, RiotMatchInfo Info);
+        public record RiotMatchMetadata(string MatchId, List<string> Participants);
+        public record RiotMatchInfo(int QueueId, List<RiotMatchParticipant> Participants, long GameStartTimestamp, long GameEndTimestamp, int GameDuration, string GameMode, string GameType, int MapId);
+        public record RiotMatchParticipant(string Puuid, int TeamId, int ParticipantId, string TeamPosition, int ChampionId, int Kills, int Deaths, int Assists, bool Win);
+
+
+
+
+
+
         public record RiotHttpResult<T>
         {
             public int StatusCode { get; init; }

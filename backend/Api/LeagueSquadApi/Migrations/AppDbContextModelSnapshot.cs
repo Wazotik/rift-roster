@@ -34,21 +34,35 @@ namespace LeagueSquadApi.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<bool?>("HasTimeline")
-                        .HasColumnType("boolean")
-                        .HasColumnName("has_timeline");
-
-                    b.Property<string>("Patch")
-                        .HasColumnType("text")
-                        .HasColumnName("patch");
-
-                    b.Property<int?>("Queue")
+                    b.Property<int>("DurationSeconds")
                         .HasColumnType("integer")
-                        .HasColumnName("queue");
+                        .HasColumnName("duration_seconds");
 
-                    b.Property<DateTimeOffset>("StartTime")
+                    b.Property<DateTimeOffset>("GameEnd")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("start_time");
+                        .HasColumnName("game_end");
+
+                    b.Property<DateTimeOffset>("GameStart")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("game_start");
+
+                    b.Property<string>("GameType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("game_type");
+
+                    b.Property<int>("MapId")
+                        .HasColumnType("integer")
+                        .HasColumnName("map_id");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("mode");
+
+                    b.Property<int>("QueueId")
+                        .HasColumnType("integer")
+                        .HasColumnName("queue_id");
 
                     b.HasKey("Id");
 
@@ -61,18 +75,12 @@ namespace LeagueSquadApi.Migrations
                         .HasColumnType("text")
                         .HasColumnName("match_id");
 
-                    b.Property<DateTimeOffset>("FetchedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("fetched_at");
-
-                    b.Property<int?>("FrameIntervalMs")
-                        .HasColumnType("integer")
-                        .HasColumnName("frame_interval_ms");
-
                     b.Property<string>("TimelineJson")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("timeline_json");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("timeline_json")
+                        .HasDefaultValueSql("'[]'::jsonb");
 
                     b.HasKey("Id");
 
@@ -105,6 +113,13 @@ namespace LeagueSquadApi.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("kills");
 
+                    b.Property<string>("ParticipantsJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("participants_json")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
                     b.Property<string>("Puuid")
                         .IsRequired()
                         .HasColumnType("text")
@@ -117,6 +132,10 @@ namespace LeagueSquadApi.Migrations
                     b.Property<string>("TeamPosition")
                         .HasColumnType("text")
                         .HasColumnName("team_position");
+
+                    b.Property<bool>("Win")
+                        .HasColumnType("boolean")
+                        .HasColumnName("win");
 
                     b.HasKey("MatchId", "ParticipantId");
 
@@ -177,6 +196,10 @@ namespace LeagueSquadApi.Migrations
                         .HasColumnType("text")
                         .HasColumnName("name");
 
+                    b.Property<int>("SquadMatchCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("squad_match_count");
+
                     b.HasKey("Id");
 
                     b.ToTable("squad");
@@ -204,7 +227,7 @@ namespace LeagueSquadApi.Migrations
 
                     b.HasKey("SquadId", "MatchId");
 
-                    b.ToTable("sqaud_match");
+                    b.ToTable("squad_match");
                 });
 
             modelBuilder.Entity("LeagueSquadApi.Data.Models.SquadMember", b =>

@@ -10,17 +10,26 @@ namespace LeagueSquadApi.Data.Models
         [Column("match_id")]
         public string Id { get; set; } = null!;
 
-        [Column("start_time")]
-        public DateTimeOffset StartTime { get; set; }
+        [Column("queue_id")]
+        public int QueueId { get; set; }
 
-        [Column("patch")]
-        public string? Patch {  get; set; }
+        [Column("game_start")]
+        public DateTimeOffset GameStart { get; set; }
 
-        [Column("queue")]
-        public int? Queue {  get; set; }
+        [Column("game_end")]
+        public DateTimeOffset GameEnd { get; set; }
 
-        [Column("has_timeline")]
-        public  bool? HasTimeline { get; set; }
+        [Column("duration_seconds")]
+        public int DurationSeconds {  get; set; }
+
+        [Column("mode")]
+        public string Mode { get; set; } = string.Empty;
+
+        [Column("game_type")]
+        public string GameType { get; set; } = string.Empty;
+
+        [Column("map_id")]
+        public  int MapId { get; set; }
 
         [Column("created_at")]
         public DateTimeOffset CreatedAt { get; set; }  

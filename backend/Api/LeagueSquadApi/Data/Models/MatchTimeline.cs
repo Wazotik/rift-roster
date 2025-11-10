@@ -11,14 +11,8 @@ namespace LeagueSquadApi.Data.Models
         [Column("match_id")]
         public string Id { get; set; } = null!;
 
-        [Column("fetched_at")]
-        public DateTimeOffset FetchedAt { get; set; }
-
-        [Column("frame_interval_ms")]
-        public int? FrameIntervalMs { get; set; }
-
         [Column("timeline_json")]
-        public string TimelineJson { get; set; } = string.Empty;
+        public string TimelineJson { get; set; } = "[]";
 
     }
 }

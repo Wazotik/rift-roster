@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LeagueSquadApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251105063430_ReplaceMatchIdWithPuuidSquadMember")]
-    partial class ReplaceMatchIdWithPuuidSquadMember
+    [Migration("20251110053756_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,24 +32,40 @@ namespace LeagueSquadApi.Migrations
                         .HasColumnName("match_id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
-                    b.Property<bool?>("HasTimeline")
-                        .HasColumnType("boolean")
-                        .HasColumnName("has_timeline");
-
-                    b.Property<string>("Patch")
-                        .HasColumnType("text")
-                        .HasColumnName("patch");
-
-                    b.Property<int?>("Queue")
+                    b.Property<int>("DurationSeconds")
                         .HasColumnType("integer")
-                        .HasColumnName("queue");
+                        .HasColumnName("duration_seconds");
 
-                    b.Property<DateTimeOffset>("StartTime")
+                    b.Property<DateTimeOffset>("GameEnd")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("start_time");
+                        .HasColumnName("game_end");
+
+                    b.Property<DateTimeOffset>("GameStart")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("game_start");
+
+                    b.Property<string>("GameType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("game_type");
+
+                    b.Property<int>("MapId")
+                        .HasColumnType("integer")
+                        .HasColumnName("map_id");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("mode");
+
+                    b.Property<int>("QueueId")
+                        .HasColumnType("integer")
+                        .HasColumnName("queue_id");
 
                     b.HasKey("Id");
 
@@ -62,18 +78,12 @@ namespace LeagueSquadApi.Migrations
                         .HasColumnType("text")
                         .HasColumnName("match_id");
 
-                    b.Property<DateTimeOffset>("FetchedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("fetched_at");
-
-                    b.Property<int?>("FrameIntervalMs")
-                        .HasColumnType("integer")
-                        .HasColumnName("frame_interval_ms");
-
                     b.Property<string>("TimelineJson")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("timeline_json");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("timeline_json")
+                        .HasDefaultValueSql("'[]'::jsonb");
 
                     b.HasKey("Id");
 
@@ -106,6 +116,13 @@ namespace LeagueSquadApi.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("kills");
 
+                    b.Property<string>("ParticipantsJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("participants_json")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
                     b.Property<string>("Puuid")
                         .IsRequired()
                         .HasColumnType("text")
@@ -118,6 +135,10 @@ namespace LeagueSquadApi.Migrations
                     b.Property<string>("TeamPosition")
                         .HasColumnType("text")
                         .HasColumnName("team_position");
+
+                    b.Property<bool>("Win")
+                        .HasColumnType("boolean")
+                        .HasColumnName("win");
 
                     b.HasKey("MatchId", "ParticipantId");
 
@@ -134,17 +155,15 @@ namespace LeagueSquadApi.Migrations
                         .HasColumnName("puuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("GameName")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("game_name");
-
-                    b.Property<string>("Platform")
-                        .HasColumnType("text")
-                        .HasColumnName("platform");
 
                     b.Property<string>("Region")
                         .HasColumnType("text")
@@ -170,13 +189,19 @@ namespace LeagueSquadApi.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("name");
+
+                    b.Property<int>("SquadMatchCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("squad_match_count");
 
                     b.HasKey("Id");
 
@@ -194,8 +219,10 @@ namespace LeagueSquadApi.Migrations
                         .HasColumnName("match_id");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("ReasonForAddition")
                         .HasColumnType("text")
@@ -203,7 +230,7 @@ namespace LeagueSquadApi.Migrations
 
                     b.HasKey("SquadId", "MatchId");
 
-                    b.ToTable("sqaud_match");
+                    b.ToTable("squad_match");
                 });
 
             modelBuilder.Entity("LeagueSquadApi.Data.Models.SquadMember", b =>
@@ -216,13 +243,15 @@ namespace LeagueSquadApi.Migrations
                         .HasColumnType("text")
                         .HasColumnName("puuid");
 
-                    b.Property<DateTimeOffset>("AddedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("added_at");
-
                     b.Property<string>("Alias")
                         .HasColumnType("text")
                         .HasColumnName("alias");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("added_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("Role")
                         .HasColumnType("text")

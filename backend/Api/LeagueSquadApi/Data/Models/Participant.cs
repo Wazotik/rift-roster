@@ -36,6 +36,11 @@ namespace LeagueSquadApi.Data.Models
         [Column("assists")]
         public int Assists { get; set; }
 
+        [Column("win")]
+        public bool Win { get; set; }
+
+        [Column("participants_json")]
+        public string ParticipantsJson { get; set; } = "[]";
 
     }
 }

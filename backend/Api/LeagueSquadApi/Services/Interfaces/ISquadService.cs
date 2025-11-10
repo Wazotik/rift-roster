@@ -13,5 +13,6 @@ namespace LeagueSquadApi.Services.Interfaces
         Task<ServiceResult<List<SquadMemberResponse>>> GetAllMembersAsync(long id, CancellationToken ct);
         Task<ServiceResult> DeleteMemberAsync(long id, string puuid, CancellationToken ct);
         Task<ServiceResult<SquadMemberResponse>> GetMemberAsync(long id, string puuid, CancellationToken ct);
+        Task<ServiceResult<List<SquadMatchResponse>>> GetSquadMatchesAsync(long id, IRiotService rs, IMatchService ms, ISquadMatchService sms, CancellationToken ct);
     }
 }

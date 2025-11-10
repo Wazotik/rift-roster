@@ -6,11 +6,11 @@ using LeagueSquadApi.Dtos.Enums;
 using LeagueSquadApi.Services;
 using LeagueSquadApi.Services.Interfaces;
 using LeagueSquadApi.Endpoints;
-using System.Net.WebSockets;
+using static LeagueSquadApi.Dtos.RiotDtos;
 
 var builder = WebApplication.CreateBuilder(args);
-var riotApiKey = builder.Configuration["RiotApiKey"];
-var connectionString = builder.Configuration.GetConnectionString("Postgres");
+var riotApiKey = builder.Configuration["RiotApiKey"] ?? throw new InvalidOperationException("Missing riot api key");
+var connectionString = builder.Configuration.GetConnectionString("Postgres") ?? throw new InvalidOperationException("Missing db conn string");
 
 
 // Services
@@ -21,13 +21,18 @@ builder.Services.AddDbContext<AppDbContext>(opts =>
 
 builder.Services.AddHttpClient<IRiotClient, RiotClient>(http =>
 {
-    http.BaseAddress = new Uri("https://americas.api.riotgames.com/riot/");
+    Console.WriteLine(riotApiKey);
+    Console.WriteLine(connectionString);
+    http.BaseAddress = new Uri("https://americas.api.riotgames.com/");
     http.DefaultRequestHeaders.Add("X-Riot-Token", riotApiKey);
     http.Timeout = TimeSpan.FromSeconds(10);
 });
 
 builder.Services.AddScoped<IPlayerService, PlayerService>();
 builder.Services.AddScoped<ISquadService, SquadService>();
+builder.Services.AddScoped<ISquadMatchService, SquadMatchService>();
+builder.Services.AddScoped<IMatchService, MatchService>();
+builder.Services.AddScoped<IRiotService, RiotService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -63,17 +68,17 @@ app.MapGet("/health", () => Results.Ok(new
 }));
 
 // Find riot account (using tagline and game name) 
-app.MapGet("/riot-account/{gameName}/{tagLine}", async (string gameName, string tagLine, IRiotClient riotClient, CancellationToken ct) =>
+app.MapGet("/riot-account/{gameName}/{tagLine}", async (string gameName, string tagLine, IRiotService rs, CancellationToken ct) =>
 {
-    var account = await riotClient.GetAccountByRiotIdAsync(gameName, tagLine, ct);
-    return Results.Ok(account);
+    var res = await rs.GetAccountByRiotIdAsync(gameName, tagLine, ct);
+    return ResultStatusToIResultMapper<RiotAccountResponse>.ToHttp(res);
 });
 
 // Find riot account (using puuid) 
-app.MapGet("/riot-account/{puuid}", async (string puuid, IRiotClient riotClient, CancellationToken ct) =>
+app.MapGet("/riot-account/{puuid}", async (string puuid, IRiotService rs, CancellationToken ct) =>
 {
-    var account = await riotClient.GetAccountByPuuidAsync(puuid, ct);
-    return Results.Ok(account);
+    var res = await rs.GetAccountByPuuidAsync(puuid, ct);
+    return ResultStatusToIResultMapper<RiotAccountResponse>.ToHttp(res);
 });
 
 
@@ -165,6 +170,12 @@ app.MapDelete("/squads/{id}/members/{puuid}", async (long id, string puuid, ISqu
 });
 
 
+// Get match history for a squad (5 games per squad)
+app.MapGet("/squads/{id}/matches", async (long id, ISquadService ss, IRiotService rs, IMatchService ms, ISquadMatchService sms, CancellationToken ct) =>
+{
+    var res = await ss.GetSquadMatchesAsync(id, rs, ms, sms, ct);
+    return ResultStatusToIResultMapper<List<SquadMatchResponse>>.ToHttp(res);
+});
 
 
 

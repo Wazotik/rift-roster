@@ -12,6 +12,9 @@ namespace LeagueSquadApi.Data.Models
         [Column("name")]
         public string Name { get; set; } = string.Empty;
 
+        [Column("squad_match_count")]
+        public int SquadMatchCount { get; set; } = 0;
+
         [Column("created_at")]
         public DateTimeOffset CreatedAt { get; set; }
     }

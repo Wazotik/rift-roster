@@ -4,6 +4,7 @@ using LeagueSquadApi.Dtos;
 using LeagueSquadApi.Dtos.Enums;
 using LeagueSquadApi.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace LeagueSquadApi.Services
 {
@@ -46,9 +47,6 @@ namespace LeagueSquadApi.Services
 
         public async Task<ServiceResult> DeleteAsync(long id, CancellationToken ct)
         {
-
-
-            // delete squad members first
             var numDeleted = await db.Squad.Where(s => s.Id == id).ExecuteDeleteAsync(ct);
             if (numDeleted == 0) return ServiceResult.Fail(ResultStatus.NotFound);
             return ServiceResult.Ok(ResultStatus.NoContent);
@@ -65,6 +63,13 @@ namespace LeagueSquadApi.Services
 
         public async Task<ServiceResult<SquadMemberResponse>> AddMemberAsync(long id, SquadMemberRequest req, IPlayerService ps, CancellationToken ct)
         {
+            var existingSquadMembers = await db.SquadMember.Where(sm => sm.SquadId == id).ToListAsync(ct);
+            var memberCount = existingSquadMembers.Count();
+            if (memberCount == 5) return ServiceResult<SquadMemberResponse>.Fail(ResultStatus.Conflict);
+
+            var exists = await db.SquadMember.Where(sm => sm.SquadId == id && sm.Puuid == req.Puuid).FirstOrDefaultAsync(ct);
+            if (exists != null) return ServiceResult<SquadMemberResponse>.Fail(ResultStatus.Conflict);
+            
             var res = await ps.UpsertWithPuuidAsync(req.Puuid, ct);
             if (!res.IsSuccessful) return ServiceResult<SquadMemberResponse>.Fail(res.Status);
             var p = res.Value;
@@ -88,6 +93,165 @@ namespace LeagueSquadApi.Services
             var numDeleted = await db.SquadMember.Where(sm => sm.SquadId == id && sm.Puuid == puuid).ExecuteDeleteAsync(ct);
             if (numDeleted == 0) return ServiceResult.Fail(ResultStatus.NotFound);
             return ServiceResult.Ok(ResultStatus.NoContent);
+        }
+
+        public async Task<ServiceResult<List<SquadMatchResponse>>> GetSquadMatchesAsync(long id, IRiotService rs, IMatchService ms, ISquadMatchService sms, CancellationToken ct)
+        {
+            // final return value
+            var squadMatches = new List<SquadMatchResponse>();
+
+
+            // get squad based on id
+            var squad = await db.Squad.Where(s => s.Id == id).FirstOrDefaultAsync(ct);
+            if (squad == null) return ServiceResult<List<SquadMatchResponse>>.Fail(ResultStatus.NotFound);
+
+            TimeSpan timeElapsed = squad.SquadMatchCount == 5 ? (DateTimeOffset.Now).Subtract((await db.SquadMatch.Where(sm => sm.SquadId == id).FirstOrDefaultAsync(ct)).CreatedAt) : new TimeSpan();
+
+            // check if the squad already has the hard limit of 5 squad matches and time elapsed is less than 2 minutes
+            if (squad.SquadMatchCount == 5 && timeElapsed.Minutes < 2)
+            {
+                Console.WriteLine("there are 5 squad matches and its been less than 2 minutes!");
+                squadMatches = await db.SquadMatch.Where(sm => sm.SquadId == id).Join(db.Match, sm => sm.MatchId, m => m.Id, (sm, m) =>
+                   new SquadMatchResponse(sm.SquadId, sm.MatchId, sm.ReasonForAddition, m.QueueId, m.GameStart, m.GameEnd, m.DurationSeconds, m.Mode, m.GameType, m.MapId, sm.CreatedAt)).ToListAsync(ct);
+            }
+            else
+            {
+                // get all squad members from squad
+                var res = await GetAllMembersAsync(id, ct);
+                if (!res.IsSuccessful) return ServiceResult<List<SquadMatchResponse>>.Fail(res.Status);
+                var squadMembers = res.Value;
+
+                var squadMemberIds = squadMembers.Select(sm => sm.Puuid).ToList();
+                if (squadMemberIds.Count == 0) return ServiceResult<List<SquadMatchResponse>>.Fail(ResultStatus.NotFound);
+                var firstSquadMemberId = squadMemberIds[0];
+
+                // fetch 100 match ids for squadmember1 using their id (same as puuid)
+                var resMatchIds = await rs.GetMatchIdsAsync(firstSquadMemberId, 100, ct);
+                if (!resMatchIds.IsSuccessful) return ServiceResult<List<SquadMatchResponse>>.Fail(resMatchIds.Status);
+                var matchIds = resMatchIds.Value;
+
+                var existingSquadMatchIds = await db.SquadMatch.AsNoTracking().Where(sm => sm.SquadId == id).Select(sm => sm.MatchId).ToHashSetAsync(ct);
+
+                var squadMatchesCount = squad.SquadMatchCount;
+
+                if (squadMatchesCount == 5)
+                {
+                    await db.SquadMatch.Where(sm => sm.SquadId == id).ExecuteDeleteAsync(ct);
+                }
+
+                // for every match id, fetch the match, then check if every squadmemberid is in the match's particpant id list
+                foreach (var matchId in matchIds)
+                {
+                    if (squadMatchesCount >= 5) break;
+                    if (existingSquadMatchIds.Contains(matchId)) continue;
+
+                    var resMatch = await rs.GetMatchAsync(matchId, ct);
+                    if (!resMatch.IsSuccessful) continue;
+                    var match = resMatch.Value;
+
+                    bool addMatch = true;
+
+                    // put participant puuids in map for constant time access 
+                    Dictionary<string, int> participantIdsMap = new Dictionary<string, int>();
+                    foreach (var participantPuuid in match.ParticipantsIds)
+                    {
+                        if (!participantIdsMap.ContainsKey(participantPuuid))
+                        {
+                            participantIdsMap.Add(participantPuuid, 0);
+                        }
+                    }
+
+                    // make sure every squadmember is a participant of the current match
+                    foreach (var squadMemberId in squadMemberIds)
+                    {
+                        // put and 
+                        if (!participantIdsMap.ContainsKey(squadMemberId))
+                        {
+                            addMatch = false;
+                            break;
+                        }
+                    }
+
+                    if (addMatch)
+                    {
+                        await using var tx = await db.Database.BeginTransactionAsync(ct);
+                        try
+                        {
+
+                            // check is match is already in db
+                            MatchResponse matchNeeded;
+
+                            var existingMatch = await db.Match.FindAsync(matchId, ct);
+                            if (existingMatch != null)
+                            {
+                                var m = await db.Match.Where(m => m.Id == matchId).Select(match =>
+                                    new MatchResponse(existingMatch.Id, existingMatch.QueueId, existingMatch.GameStart, existingMatch.GameEnd, existingMatch.DurationSeconds, existingMatch.Mode, existingMatch.GameType, existingMatch.MapId, existingMatch.CreatedAt)).FirstOrDefaultAsync(ct);
+                                matchNeeded = m;
+                            }
+                            else
+                            {
+                                // add match to match table using match service
+                                var resMatchCreated = await ms.AddAsync(match.MatchId, match.QueueId, match.GameStart, match.GameEnd, match.DurationSeconds, match.Mode, match.GameType, match.MapId, ct);
+                                if (!resMatchCreated.IsSuccessful) return ServiceResult<List<SquadMatchResponse>>.Fail(resMatchCreated.Status);
+                                var matchCreated = resMatchCreated.Value;
+                                matchNeeded = matchCreated;
+                            }
+
+                            // add squadmatch to squadmatch table using squadmatch service
+                            var resSquadMatchCreated = await sms.AddAsync(id, match.MatchId, "Match contains all Squad Members", matchNeeded, ct);
+                            if (!resSquadMatchCreated.IsSuccessful) return ServiceResult<List<SquadMatchResponse>>.Fail(resSquadMatchCreated.Status);
+
+                            var existingParticipantIds = await db.Participant.AsNoTracking().Where(p => p.MatchId == matchId).Select(x => new { x.MatchId, x.ParticipantId }).ToHashSetAsync(ct);
+
+
+                            var existingBySlot = await db.Participant.Where(p => p.MatchId == match.MatchId).Select(p => new { p.ParticipantId, p.Puuid }).ToListAsync(ct);
+                            var existingSlotSet = existingBySlot.Select(x => x.ParticipantId).ToHashSet();
+                            var existingPuuidSet = existingBySlot.Select(x => x.Puuid).ToHashSet();
+
+
+                            using var pDoc = JsonDocument.Parse(match.ParticipantsJson);
+                            var rawByPuuid = pDoc.RootElement.EnumerateArray().ToDictionary(e => e.GetProperty("puuid").GetString()!, e => e.GetRawText());
+
+                            var newParticipants = match.Participants.Select(p => new Participant
+                            {
+                                MatchId = match.MatchId,
+                                ParticipantId = p.ParticipantId,
+                                Puuid = p.Puuid,
+                                TeamId = p.TeamId,
+                                TeamPosition = p.TeamPosition,
+                                ChampionId = p.ChampionId,
+                                Kills = p.Kills,
+                                Deaths = p.Deaths,
+                                Assists = p.Assists,
+                                Win = p.Win,
+                                ParticipantsJson =  rawByPuuid.TryGetValue(p.Puuid, out var x) ? x : "{}"
+                            }).DistinctBy(x => new { x.MatchId, x.ParticipantId }).Where(x => !existingSlotSet.Contains(x.ParticipantId) && !existingPuuidSet.Contains(x.Puuid)).ToList();
+
+                            if (newParticipants.Count > 0) await db.Participant.AddRangeAsync(newParticipants, ct);
+
+                            MatchTimeline mt = new MatchTimeline() { Id = match.MatchId, TimelineJson = match.TimelineJson };
+                            await db.MatchTimeline.AddAsync(mt, ct);
+
+                            squad.SquadMatchCount += 1;
+
+                            await db.SaveChangesAsync(ct);
+                            await tx.CommitAsync(ct);
+
+                            squadMatches.Add(resSquadMatchCreated.Value);
+                            squadMatchesCount += 1;
+                        }
+                        catch
+                        {
+                            await tx.RollbackAsync(ct);
+                        }
+
+                    }
+                }
+            }
+
+
+
+            return ServiceResult<List<SquadMatchResponse>>.Ok(squadMatches);
         }
     }
 }

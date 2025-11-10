@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LeagueSquadApi.Data.Models
 {
-    [Table("sqaud_match")]
+    [Table("squad_match")]
     [PrimaryKey(nameof(SquadId), nameof(MatchId))]
     public class SquadMatch
     {

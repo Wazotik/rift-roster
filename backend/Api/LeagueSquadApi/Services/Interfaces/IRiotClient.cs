@@ -6,5 +6,7 @@ namespace LeagueSquadApi.Services.Interfaces
     {
         Task<RiotHttpResult<RiotAccountResponse>> GetAccountByRiotIdAsync(string gameName, string tagLine, CancellationToken ct);
         Task<RiotHttpResult<RiotAccountResponse>> GetAccountByPuuidAsync(string puuid, CancellationToken ct);
+        Task<RiotHttpResult<List<string>>> GetMatchIdsAsync(string puuid, int count, CancellationToken ct);
+        Task<RiotHttpResult<RiotMatchResponse>> GetMatchAsync(string id, CancellationToken ct);
     }
 }
