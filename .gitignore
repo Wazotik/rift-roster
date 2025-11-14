@@ -50,15 +50,15 @@ secrets.json
 # ==========================
 # Frontend (Node / React / Vue / etc.)
 # ==========================
-frontend/node_modules/
-frontend/.next/
-frontend/.nuxt/
-frontend/dist/
-frontend/build/
-frontend/.cache/
-frontend/npm-debug.log*
-frontend/yarn-debug.log*
-frontend/yarn-error.log*
+frontend/league-squad-web/node_modules/
+frontend/league-squad-web/.next/
+frontend/league-squad-web/.nuxt/
+frontend/league-squad-web/dist/
+frontend/league-squad-web/build/
+frontend/league-squad-web/.cache/
+frontend/league-squad-web/npm-debug.log*
+frontend/league-squad-web/yarn-debug.log*
+frontend/league-suqad-web/yarn-error.log*
 
 # Environment variables
 .env

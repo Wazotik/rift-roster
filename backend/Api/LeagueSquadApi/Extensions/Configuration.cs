@@ -44,6 +44,7 @@ namespace LeagueSquadApi.Extensions
         {
             if (app.Environment.IsDevelopment())
             {
+                app.UseCors("frontend");
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }

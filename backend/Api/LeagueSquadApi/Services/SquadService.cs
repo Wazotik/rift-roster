@@ -22,9 +22,10 @@ namespace LeagueSquadApi.Services
             if (squad == null) return ServiceResult<SquadResponse>.Fail(ResultStatus.NotFound);
             return ServiceResult<SquadResponse>.Ok(new SquadResponse(squad.Id, squad.Name, squad.CreatedAt));
         }
+
         public async Task<ServiceResult<List<SquadResponse>>> GetAllAsync(CancellationToken ct)
         {
-            var squads = await db.Squad.Select(s => new SquadResponse(s.Id, s.Name, s.CreatedAt)).ToListAsync(ct);
+            var squads = await db.Squad.OrderBy(s => s.Id).Select(s => new SquadResponse(s.Id, s.Name, s.CreatedAt)).ToListAsync(ct);
             return ServiceResult<List<SquadResponse>>.Ok(squads);
         }
 
