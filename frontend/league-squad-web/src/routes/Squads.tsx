@@ -41,41 +41,6 @@ const Squads = () => {
         });
     }
 
-
-
-
-    // Delete a Squad
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // pop up update modal
-
-
-    // if (isSquadsLoading) {
-    //     return (
-    //         <Loader color="blue" />
-    //     )
-    // }
-
     if (isSquadsError) {
         return (<div>Failed: {squadsError.message}</div>)
     };
@@ -107,7 +72,7 @@ const Squads = () => {
                             <Flex direction="column">
                                 <label htmlFor="newSquadName">Name</label>
                                 <input type="text" onChange={(e) => setNewSquadName(e.target.value)} value={newSquadName} id="newSquadName" required />
-                                <Button mt="lg" type="submit">
+                                <Button mt="lg" type="submit" loading={isCreateSquadPending}>
                                     create
                                 </Button>
                             </Flex>

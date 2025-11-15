@@ -11,6 +11,10 @@ app.RegisterMiddlewares();
 
 app.RegisterSquadEndpoints();
 
+app.RegisterPlayerEndpoints();
+
+app.RegisterRiotEndpoints();
+
 app.MapGet("/", () => "Server is up!");
 
 app.MapGet("/health", () => Results.Ok(new

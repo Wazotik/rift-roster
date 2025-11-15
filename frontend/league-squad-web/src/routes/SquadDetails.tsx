@@ -1,7 +1,7 @@
 import React from 'react'
 import { getSquad } from '../api/squads';
 
-const SquadDetails = ({ squadId }) => {
+const SquadDetails = () => {
 
     // Get a squad
     const { data: squad, isLoading: isSquadLoading, isError: isSquadError, error: squadError } = useQuery({
