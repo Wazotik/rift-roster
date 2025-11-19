@@ -2,7 +2,7 @@
 
 RiftRoster helps League of Legends squads actually play like squads.
 
-Instead of checking stats individually across multiple sites, RiftRoster brings a team’s performance into one shared dashboard — recent matches, collective win rates, playstyle patterns, and trends that reveal a squad’s identity.
+Instead of checking stats individually across multiple sites, RiftRoster brings a team’s performance into one shared dashboard through recent matches, collective win rates, playstyle patterns, and trends that reveal a squad’s identity.
 
 It gives players a way to improve together, celebrate progress, and understand how they perform as a group rather than as five isolated players. Built with a modern full-stack architecture (React + TypeScript + .NET 9 + PostgreSQL), RiftRoster combines Riot API data with clean UI and squad-level analytics to help teams grow and play more intentionally.
 
