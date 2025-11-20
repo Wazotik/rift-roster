@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LeagueSquadApi.Data.Models
@@ -22,10 +21,10 @@ namespace LeagueSquadApi.Data.Models
         public int TeamId { get; set; }
 
         [Column("team_position")]
-        public string? TeamPosition { get; set; }
+        public string TeamPosition { get; set; } = string.Empty!;
 
         [Column("champion_id")]
-        public int? ChampionId { get; set; }
+        public int ChampionId { get; set; }
 
         [Column("kills")]
         public int Kills { get; set; }

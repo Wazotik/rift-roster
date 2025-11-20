@@ -16,7 +16,7 @@ export default function App() {
                 <Route path="/" element={<Landing />} />
                 <Route path="/squads">
                     <Route index element={<Squads />} />
-                    <Route path=":id" element={<SquadDetails />} >
+                    <Route path=":squadId" element={<SquadDetails />} >
                         <Route path="matches" element={<Matches />} />
                     </Route>
                 </Route>

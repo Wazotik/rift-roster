@@ -29,6 +29,8 @@ namespace LeagueSquadApi.Extensions
             builder.Services.AddScoped<ISquadMatchService, SquadMatchService>();
             builder.Services.AddScoped<IMatchService, MatchService>();
             builder.Services.AddScoped<IRiotService, RiotService>();
+            builder.Services.AddScoped<IParticipantService, ParticipantService>();
+            builder.Services.AddScoped<IMatchAggregatedStatsService, MatchAggregatedStatsService>();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddCors(opt =>

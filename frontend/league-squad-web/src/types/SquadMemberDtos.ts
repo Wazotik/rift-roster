@@ -10,9 +10,12 @@ export interface SquadMemberResponse {
 }
 
 // Split to AddSquadMemberRequest and GetSquadMemberRequest
-export interface AddSquadMemberRequest {
-    puuid: string,
-    role?: string, 
-    alias?: string
-}
+// export interface AddSquadMemberRequest {
+//     puuid: string,
+//     role?: string, 
+//     alias?: string
+// }
 
+export type AddSquadMemberRequest = Pick<SquadMemberResponse, "puuid" | "role" | "alias">
+
+export type GetSquadMemberRequest = Pick<SquadMemberResponse, "squadId" | "puuid">

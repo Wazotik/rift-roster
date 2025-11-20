@@ -3,6 +3,7 @@ using System;
 using LeagueSquadApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LeagueSquadApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251119034034_ReaddMatchAggregatedStats")]
+    partial class ReaddMatchAggregatedStats
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -90,7 +93,7 @@ namespace LeagueSquadApi.Migrations
 
                     b.HasKey("MatchId");
 
-                    b.ToTable("match_aggregated_stats");
+                    b.ToTable("MatchAggregatedStats");
                 });
 
             modelBuilder.Entity("LeagueSquadApi.Data.Models.MatchTimeline", b =>

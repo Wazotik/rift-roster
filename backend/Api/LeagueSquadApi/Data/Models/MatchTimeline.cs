@@ -13,6 +13,5 @@ namespace LeagueSquadApi.Data.Models
 
         [Column("timeline_json")]
         public string TimelineJson { get; set; } = "[]";
-
     }
 }

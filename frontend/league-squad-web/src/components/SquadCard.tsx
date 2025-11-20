@@ -1,4 +1,6 @@
-import { Card, Box, Flex, Text, Image, Group, Button, Modal, Divider } from "@mantine/core"
+import { Card, Box, Flex, Text, Image, Group, Button, Modal, Divider, Stack, Badge, TextInput, Select, Collapse, ActionIcon } from "@mantine/core"
+import { notifications } from '@mantine/notifications';
+import { IconChevronDown, IconChevronUp, IconMug } from '@tabler/icons-react'
 import { useDisclosure } from "@mantine/hooks";
 import { useEffect, useState } from "react";
 import type { SquadResponse, UpdateSquadRequest } from "../types/SquadDtos";
@@ -9,16 +11,21 @@ import type { AddSquadMemberRequest, SquadMemberResponse } from "../types/SquadM
 import { apiGet } from "../lib/apiClient";
 import { getRiotAccountUsingRiotId } from "../api/riotAccounts";
 import type { RiotAccountResponse } from "../types/RiotAccountDtos";
+import { Link } from "react-router-dom";
+import { squadIconOptions } from "../assets/squadIconOptions";
 
 type SquadCardTypes = {
     squadId: number
     name: string;
+    iconUrl: string;
 }
 
-const SquadCard = ({ squadId, name }: SquadCardTypes) => {
+const SquadCard = ({ squadId, name, iconUrl }: SquadCardTypes) => {
     const [opened, { open, close }] = useDisclosure(false);
     const [finderOpened, finderHandlers] = useDisclosure(false);
+    const [showMembers, setShowMembers] = useState(false);
     const [updatedSquadName, setUpdatedSquadName] = useState(name);
+    const [updatedSquadIcon, setUpdatedSquadIcon] = useState(iconUrl);
     const [findGameName, setFindGameName] = useState("");
     const [findTagline, setFindTagline] = useState("");
     const [riotAccountPuuid, setRiotAccountPuuid] = useState("");
@@ -29,6 +36,7 @@ const SquadCard = ({ squadId, name }: SquadCardTypes) => {
     const [alias, setAlias] = useState("");
 
     const [isSquadFull, setIsSquadFull] = useState(false);
+    const [isSquadEmpty, setIsSquadEmpty] = useState(true);
 
     const queryClient = useQueryClient();
 
@@ -45,9 +53,19 @@ const SquadCard = ({ squadId, name }: SquadCardTypes) => {
             queryClient.invalidateQueries({ queryKey: ["squads"] });
             console.log("squad updated");
             close();
+            notifications.show({
+                title: 'Success!',
+                message: 'Squad updated successfully',
+                color: 'green',
+            });
         },
-        onError: () => {
-            console.log("update squad error", (isUpdateSquadError ? updateSquadError.message : ""));
+        onError: (error) => {
+            console.log("update squad error", error.message);
+            notifications.show({
+                title: 'Error',
+                message: `Failed to update squad: ${error.message}`,
+                color: 'red',
+            });
         }
     });
 
@@ -56,9 +74,19 @@ const SquadCard = ({ squadId, name }: SquadCardTypes) => {
         mutationFn: deleteSquad,
         onSuccess: (data, variables) => {
             queryClient.invalidateQueries({ queryKey: ["squads"] });
+            notifications.show({
+                title: 'Squad Deleted',
+                message: 'Squad has been successfully deleted',
+                color: 'blue',
+            });
         },
-        onError: () => {
-            console.log("delete squad error", (isDeleteSquadError ? deleteSquadError.message : ""));
+        onError: (error) => {
+            console.log("delete squad error", error.message);
+            notifications.show({
+                title: 'Error',
+                message: `Failed to delete squad: ${error.message}`,
+                color: 'red',
+            });
         }
     });
 
@@ -80,14 +108,24 @@ const SquadCard = ({ squadId, name }: SquadCardTypes) => {
 
     // add a squad member 
     const { data: squadMember, mutate: addSquadMemberMutate, isPending: isAddSquadMemberPending, isError: isAddSquadMemberError, error: addSquadMemberError } = useMutation<SquadMemberResponse, Error, AddSquadMemberRequest>({
-        // mutationFn: ({ id, req }) => addSquadMember(squadId, req),
         mutationFn: (req) => addSquadMember(squadId, req),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["squads", squadId, "members"] });
+            queryClient.invalidateQueries({ queryKey: ["squads", squadId, "matches"], refetchType: "active" });
             finderHandlers.close();
+            notifications.show({
+                title: 'Member Added!',
+                message: 'Squad member has been successfully added',
+                color: 'green',
+            });
         },
-        onError: (e) => {
-            console.log(e.message);
+        onError: (error) => {
+            console.log(error.message);
+            notifications.show({
+                title: 'Error',
+                message: `Failed to add member: ${error.message}`,
+                color: 'red',
+            });
         },
     });
 
@@ -99,7 +137,7 @@ const SquadCard = ({ squadId, name }: SquadCardTypes) => {
     const handleUpdateSquad = (e: React.FormEvent) => {
         e.preventDefault();
         console.log("updating squad ", squadId);
-        updateSquadMutate({ id: squadId, req: { name: updatedSquadName } });
+        updateSquadMutate({ id: squadId, req: { name: updatedSquadName, iconUrl: updatedSquadIcon } });
     }
 
     const handleDeleteSquad = (e: React.FormEvent) => {
@@ -128,9 +166,9 @@ const SquadCard = ({ squadId, name }: SquadCardTypes) => {
         if (squadMembers && squadMembers.length === 5) setIsSquadFull(true);
     }, [squadMembers])
 
-    // useEffect(() => {
-    //     if (squadMembers && squadMembers.length === 5) setIsSquadFull(true);
-    // }, [])
+    useEffect(() => {
+        if (squadMembers && squadMembers.length > 0 && squadMembers.length <= 5) setIsSquadEmpty(false);
+    }, [squadMembers])
 
     if (!squadMembers || isSquadMembersError) {
         return (
@@ -142,130 +180,215 @@ const SquadCard = ({ squadId, name }: SquadCardTypes) => {
         <Card shadow="sm" padding="lg" radius="md" withBorder>
             <Card.Section>
                 <Image
-                    src="https://i.pinimg.com/736x/bd/4b/b9/bd4bb91d737b74f25c7ff5ab46001b9b.jpg"
-                    height={350}
+                    fallbackSrc="https://i.pinimg.com/736x/bd/4b/b9/bd4bb91d737b74f25c7ff5ab46001b9b.jpg"
+                    src={(iconUrl === "" ? null : iconUrl)}
+                    height={180}
                     alt="squad-image"
                 />
             </Card.Section>
 
-            <Box mt="md" mb="xs">
-                <Text fw={600}>{name}</Text>
-            </Box>
-
-            <Box mt="md" mb="xs">
-                {
-                    squadMembers.length !== 0 ?
-                        (
-                            squadMembers.map((sm: SquadMemberResponse) =>
-                            (
-                                <div key={sm.puuid}>
-                                    <Text>{sm.gameName}</Text>
-                                </div>
-                            )
-                            )
-                        )
-                        :
-                        (
-                            <div>no squad members</div>
-                        )
-                }
-            </Box>
-
-            <Group mt="md">
-                <Group justify="flex-start">
-                    <Button variant="filled" color="blue" onClick={open}>
-                        update
-                    </Button>
-                </Group>
-                <Group justify="flex-end">
-                    <Button onClick={handleDeleteSquad} variant="filled" color="red">
-                        delete
-                    </Button>
+            <Stack gap="md" mt="md">
+                {/* Squad Name & Member Count */}
+                <Group justify="space-between" align="center">
+                    <Text fw={600} size="lg">{name}</Text>
+                    <Badge color={isSquadFull ? "green" : "blue"} variant="light">
+                        {squadMembers.length}/5
+                    </Badge>
                 </Group>
 
-                <Group justify="flex-start">
-                    <Button variant="filled" color="blue" onClick={finderHandlers.open} disabled={isSquadFull}>
-                        add member
+                {/* Show/Hide Members Toggle */}
+                <Button
+                    variant="subtle"
+                    onClick={() => setShowMembers(!showMembers)}
+                    rightSection={showMembers ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+                    fullWidth
+                >
+                    {showMembers ? 'Hide Members' : 'Show Members'}
+                </Button>
+
+                {/* Collapsible Member List */}
+                <Collapse in={showMembers}>
+                    <Stack gap="xs">
+                        {squadMembers.length !== 0 ? (
+                            squadMembers.map((sm: SquadMemberResponse) => (
+                                <Box key={sm.puuid}>
+                                    <Text size="sm">
+                                        {sm.gameName}
+                                        {/* fix this: don't manually check for "string" and empty string */}
+                                        {sm.alias !== "string" && sm.alias !== "" && (
+                                            <Text span c="dimmed" size="xs" ml="xs">
+                                                ({sm.alias})
+                                            </Text>
+                                        )}
+                                    </Text>
+                                </Box>
+                            ))
+                        ) : (
+                            <Text size="sm" c="dimmed" ta="center">
+                                No squad members yet
+                            </Text>
+                        )}
+                    </Stack>
+                </Collapse>
+
+                <Divider />
+
+                {/* View Details Button */}
+                <Button variant="light" component={isSquadEmpty ? undefined : Link} to={`/squads/${squadId}`} disabled={isSquadEmpty} fullWidth>
+                    View Details
+                </Button>
+
+                {/* Action Buttons */}
+                <Group grow>
+                    <Button variant="filled" onClick={finderHandlers.open} disabled={isSquadFull}>
+                        Add Member
+                    </Button>
+                    <Button variant="outline" onClick={open}>
+                        Update
                     </Button>
                 </Group>
-            </Group>
 
-            <Modal opened={opened} onClose={close} title="update squad" centered>
-                <Box>
-                    <form
-                        onSubmit={handleUpdateSquad}
-                    >
-                        <Flex direction="column">
-                            <label htmlFor="updateSquadName">Name</label>
-                            <input type="text" onChange={(e) => setUpdatedSquadName(e.target.value)} value={updatedSquadName} id="updateSquadName" required />
-                            <Button mt="lg" type="submit">
-                                update
-                            </Button>
-                        </Flex>
-                    </form>
-                </Box>
+                <Button onClick={handleDeleteSquad} variant="subtle" color="red" fullWidth>
+                    Delete Squad
+                </Button>
+            </Stack>
+
+            <Modal opened={opened} onClose={close} title="Update Squad" centered>
+                <form onSubmit={handleUpdateSquad}>
+                    <Stack gap="md">
+                        <TextInput
+                            label="Squad Name"
+                            placeholder="Enter squad name"
+                            value={updatedSquadName}
+                            onChange={(e) => setUpdatedSquadName(e.target.value)}
+                            required
+                        />
+                        <Stack gap="sm">
+                            <Text size="sm" fw={500}>
+                                Select Squad Icon
+                            </Text>
+                            <Group justify="center" gap="md">
+                                {squadIconOptions.map((img, index) => {
+                                    const isSelected = updatedSquadIcon === img;
+                                    return (
+                                        <Box
+                                            key={index}
+                                            onClick={() => setUpdatedSquadIcon(img)}
+                                            style={{
+                                                cursor: 'pointer',
+                                                border: isSelected ? '3px solid var(--mantine-color-blue-6)' : '2px solid var(--mantine-color-gray-6)',
+                                                borderRadius: '8px',
+                                                padding: '4px',
+                                                transition: 'all 0.2s ease',
+                                                transform: isSelected ? 'scale(1.05)' : 'scale(1)',
+                                                boxShadow: isSelected ? '0 0 0 4px rgba(34, 139, 230, 0.2)' : 'none',
+                                                opacity: isSelected ? 1 : 0.7,
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                if (!isSelected) {
+                                                    e.currentTarget.style.opacity = '1';
+                                                    e.currentTarget.style.transform = 'scale(1.02)';
+                                                }
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                if (!isSelected) {
+                                                    e.currentTarget.style.opacity = '0.7';
+                                                    e.currentTarget.style.transform = 'scale(1)';
+                                                }
+                                            }}
+                                        >
+                                            <Image
+                                                src={img}
+                                                w={100}
+                                                h={100}
+                                                radius="sm"
+                                                style={{ display: 'block' }}
+                                            />
+                                        </Box>
+                                    );
+                                })}
+                            </Group>
+                        </Stack>
+                        <Button type="submit" fullWidth>
+                            Update Squad
+                        </Button>
+                    </Stack>
+                </form>
             </Modal>
 
-            <Modal opened={finderOpened} onClose={finderHandlers.close} title="find + add member" centered>
-                <Box>
-                    <form
-                        onSubmit={handleFindPlayer}
-                    >
-                        <Flex direction="column">
-                            <label htmlFor="gamename">gamename</label>
-                            <input type="text" onChange={(e) => setFindGameName(e.target.value)} value={findGameName} id="findGameName" required />
-                            <label htmlFor="tagline">tagline</label>
-                            <input type="text" onChange={(e) => setFindTagline(e.target.value)} value={findTagline} id="findTagline" required />
-                            <Button mt="lg" type="submit" loading={isRiotAccountLoading}>
-                                find
+            <Modal opened={finderOpened} onClose={finderHandlers.close} title="Find & Add Member" centered size="md">
+                <Stack gap="lg">
+                    {/* Find Player Form */}
+                    <form onSubmit={handleFindPlayer}>
+                        <Stack gap="md">
+                            <TextInput
+                                label="Game Name"
+                                placeholder="Enter Riot ID game name"
+                                value={findGameName}
+                                onChange={(e) => setFindGameName(e.target.value)}
+                                required
+                            />
+                            <TextInput
+                                label="Tagline"
+                                placeholder="Enter tagline (e.g., NA1)"
+                                value={findTagline}
+                                onChange={(e) => setFindTagline(e.target.value)}
+                                required
+                            />
+                            <Button type="submit" loading={isRiotAccountLoading} fullWidth>
+                                Find Player
                             </Button>
-                        </Flex>
+                        </Stack>
                     </form>
-                </Box>
-                {
-                    riotAccount &&
-                    (
-                        <Box mt={"lg"} mb={"lg"}>
-                            <Box mt={"lg"} mb={"lg"}>
-                                <Text><b>found player:</b></Text>
-                                <Text>gamename: {riotAccount?.gameName}</Text>
-                                <Text>tagline: {riotAccount?.tagLine}</Text>
-                                <Text>region: {riotAccount?.region}</Text>
-                            </Box>
-                            <Box>
-                                <form
-                                    onSubmit={handleAddMember}
-                                >
-                                    <Flex direction="column">
-                                        <label htmlFor="role">role</label>
-                                        <select name="role" id="role" value={role} onChange={(e) => setRole(e.target.value)}>
-                                            <option hidden disabled value=""></option>
-                                            <option value="top">Top</option>
-                                            <option value="jungle">Jungle</option>
-                                            <option value="middle">Middle</option>
-                                            <option value="bottom">Bottom</option>
-                                            <option value="support">Support</option>
-                                        </select>
-                                        <label htmlFor="alias">alias</label>
-                                        <input type="text" onChange={(e) => setAlias(e.target.value)} value={alias} id="alias" />
-                                        <Button mt="lg" type="submit" loading={isAddSquadMemberPending}>
-                                            add
-                                        </Button>
-                                    </Flex>
-                                </form>
-                            </Box>
-                        </Box>
-                    )
-                }
-                {
-                    (!riotAccount && isRiotAccountError) &&
-                    (
-                        <div>
-                            <Text>{riotAccountError.message}</Text>
-                        </div>
-                    )
-                }
+                    {/* Found Player & Add Member Form */}
+                    {riotAccount && (
+                        <Box>
+                            <Divider mb="md" />
+                            <Stack gap="md">
+                                <Box>
+                                    <Text fw={600} mb="xs">Found Player:</Text>
+                                    <Text size="sm">Game Name: {riotAccount?.gameName}</Text>
+                                    <Text size="sm">Tagline: {riotAccount?.tagLine}</Text>
+                                    <Text size="sm">Region: {riotAccount?.region}</Text>
+                                </Box>
 
+                                <form onSubmit={handleAddMember}>
+                                    <Stack gap="md">
+                                        <Select
+                                            label="Role (Optional)"
+                                            placeholder="Select role"
+                                            value={role}
+                                            onChange={(value) => setRole(value || "")}
+                                            data={[
+                                                { value: 'top', label: 'Top' },
+                                                { value: 'jungle', label: 'Jungle' },
+                                                { value: 'middle', label: 'Middle' },
+                                                { value: 'bottom', label: 'Bottom' },
+                                                { value: 'support', label: 'Support' }
+                                            ]}
+                                        />
+                                        <TextInput
+                                            label="Alias (Optional)"
+                                            placeholder="Enter player alias/nickname"
+                                            value={alias}
+                                            onChange={(e) => setAlias(e.target.value)}
+                                        />
+                                        <Button type="submit" loading={isAddSquadMemberPending} fullWidth>
+                                            Add to Squad
+                                        </Button>
+                                    </Stack>
+                                </form>
+                            </Stack>
+                        </Box>
+                    )}
+
+                    {/* Error Message */}
+                    {!riotAccount && isRiotAccountError && (
+                        <Text c="red" size="sm">
+                            {riotAccountError.message}
+                        </Text>
+                    )}
+                </Stack>
             </Modal>
 
 

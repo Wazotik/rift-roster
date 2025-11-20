@@ -3,6 +3,7 @@ using System;
 using LeagueSquadApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LeagueSquadApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251119033906_TempRemoveMatchAggregatedStats")]
+    partial class TempRemoveMatchAggregatedStats
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -67,30 +70,6 @@ namespace LeagueSquadApi.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("match");
-                });
-
-            modelBuilder.Entity("LeagueSquadApi.Data.Models.MatchAggregatedStats", b =>
-                {
-                    b.Property<string>("MatchId")
-                        .HasColumnType("text")
-                        .HasColumnName("match_id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<string>("StatsJson")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("stats_json")
-                        .HasDefaultValueSql("'[]'::jsonb");
-
-                    b.HasKey("MatchId");
-
-                    b.ToTable("match_aggregated_stats");
                 });
 
             modelBuilder.Entity("LeagueSquadApi.Data.Models.MatchTimeline", b =>
@@ -287,15 +266,6 @@ namespace LeagueSquadApi.Migrations
                     b.HasKey("SquadId", "Puuid");
 
                     b.ToTable("squad_member");
-                });
-
-            modelBuilder.Entity("LeagueSquadApi.Data.Models.MatchAggregatedStats", b =>
-                {
-                    b.HasOne("LeagueSquadApi.Data.Models.Match", null)
-                        .WithMany()
-                        .HasForeignKey("MatchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("LeagueSquadApi.Data.Models.MatchTimeline", b =>

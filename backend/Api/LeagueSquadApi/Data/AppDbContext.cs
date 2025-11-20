@@ -14,15 +14,19 @@ namespace LeagueSquadApi.Data
         public DbSet<Squad> Squad => Set<Squad>();
         public DbSet<SquadMember> SquadMember => Set<SquadMember>();
         public DbSet<SquadMatch> SquadMatch => Set<SquadMatch>();
+        public DbSet<MatchAggregatedStats> MatchAggregatedStats => Set<MatchAggregatedStats>();
 
 
         protected override void OnModelCreating(ModelBuilder mb)
         {
+            base.OnModelCreating(mb);
+
             mb.Entity<Player>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
             mb.Entity<Match>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
             mb.Entity<Squad>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
             mb.Entity<SquadMember>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
             mb.Entity<SquadMatch>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            mb.Entity<MatchAggregatedStats>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
 
             mb.Entity<Participant>()
               .Property(x => x.ParticipantsJson)
@@ -33,10 +37,41 @@ namespace LeagueSquadApi.Data
               .Property(x => x.TimelineJson)
               .HasColumnType("jsonb")
               .HasDefaultValueSql("'[]'::jsonb");
+
+            mb.Entity<MatchAggregatedStats>()
+              .Property(x => x.StatsJson)
+              .HasColumnType("jsonb")
+              .HasDefaultValueSql("'[]'::jsonb");
+
+            mb.Entity<SquadMatch>()
+                .HasOne<Squad>()
+                .WithMany()
+                .HasForeignKey(sm => sm.SquadId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            mb.Entity<SquadMember>()
+                .HasOne<Squad>()
+                .WithMany()
+                .HasForeignKey(sm => sm.SquadId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            mb.Entity<MatchTimeline>()
+                .HasOne<Match>()
+                .WithMany()
+                .HasForeignKey(mt => mt.Id)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            mb.Entity<Participant>()
+                .HasOne<Match>()
+                .WithMany()
+                .HasForeignKey(p => p.MatchId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            mb.Entity<MatchAggregatedStats>()
+                .HasOne<Match>()
+                .WithMany()
+                .HasForeignKey(mas => mas.MatchId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
-
-
-
     }
-
 }

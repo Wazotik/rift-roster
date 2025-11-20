@@ -3,6 +3,7 @@ using System;
 using LeagueSquadApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LeagueSquadApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251118001000_AddSquadIconUrl")]
+    partial class AddSquadIconUrl
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -69,30 +72,6 @@ namespace LeagueSquadApi.Migrations
                     b.ToTable("match");
                 });
 
-            modelBuilder.Entity("LeagueSquadApi.Data.Models.MatchAggregatedStats", b =>
-                {
-                    b.Property<string>("MatchId")
-                        .HasColumnType("text")
-                        .HasColumnName("match_id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<string>("StatsJson")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("stats_json")
-                        .HasDefaultValueSql("'[]'::jsonb");
-
-                    b.HasKey("MatchId");
-
-                    b.ToTable("match_aggregated_stats");
-                });
-
             modelBuilder.Entity("LeagueSquadApi.Data.Models.MatchTimeline", b =>
                 {
                     b.Property<string>("Id")
@@ -125,7 +104,7 @@ namespace LeagueSquadApi.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("assists");
 
-                    b.Property<int>("ChampionId")
+                    b.Property<int?>("ChampionId")
                         .HasColumnType("integer")
                         .HasColumnName("champion_id");
 
@@ -154,7 +133,6 @@ namespace LeagueSquadApi.Migrations
                         .HasColumnName("team_id");
 
                     b.Property<string>("TeamPosition")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("team_position");
 
@@ -219,7 +197,7 @@ namespace LeagueSquadApi.Migrations
                     b.Property<string>("IconUrl")
                         .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("icon_url");
+                        .HasColumnName("iconUrl");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -287,51 +265,6 @@ namespace LeagueSquadApi.Migrations
                     b.HasKey("SquadId", "Puuid");
 
                     b.ToTable("squad_member");
-                });
-
-            modelBuilder.Entity("LeagueSquadApi.Data.Models.MatchAggregatedStats", b =>
-                {
-                    b.HasOne("LeagueSquadApi.Data.Models.Match", null)
-                        .WithMany()
-                        .HasForeignKey("MatchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("LeagueSquadApi.Data.Models.MatchTimeline", b =>
-                {
-                    b.HasOne("LeagueSquadApi.Data.Models.Match", null)
-                        .WithMany()
-                        .HasForeignKey("Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("LeagueSquadApi.Data.Models.Participant", b =>
-                {
-                    b.HasOne("LeagueSquadApi.Data.Models.Match", null)
-                        .WithMany()
-                        .HasForeignKey("MatchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("LeagueSquadApi.Data.Models.SquadMatch", b =>
-                {
-                    b.HasOne("LeagueSquadApi.Data.Models.Squad", null)
-                        .WithMany()
-                        .HasForeignKey("SquadId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("LeagueSquadApi.Data.Models.SquadMember", b =>
-                {
-                    b.HasOne("LeagueSquadApi.Data.Models.Squad", null)
-                        .WithMany()
-                        .HasForeignKey("SquadId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }
