@@ -14,6 +14,9 @@ namespace LeagueSquadApi.Extensions
                 ?? builder.Configuration.GetConnectionString("Postgres")
                 ?? throw new InvalidOperationException("Missing db conn string");
 
+            Console.WriteLine($"Connection string value: {connectionString}");
+            Console.WriteLine($"Connection string length: {connectionString.Length}");
+
             builder.Services.AddDbContext<AppDbContext>(opts =>
             {
                 opts.UseNpgsql(connectionString);

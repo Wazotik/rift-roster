@@ -146,12 +146,12 @@ const SquadCard = ({ squadId, name, iconUrl }: SquadCardTypes) => {
         deleteSquadMutate(squadId);
     }
 
-    const handleFindPlayer = (e) => {
+    const handleFindPlayer = (e: React.FormEvent) => {
         e.preventDefault();
         refetchRiotAccount();
     };
 
-    const handleAddMember = (e) => {
+    const handleAddMember = (e: React.FormEvent) => {
         e.preventDefault();
         console.log(role);
         console.log(alias);
