@@ -14,9 +14,6 @@ namespace LeagueSquadApi.Extensions
                 ?? builder.Configuration.GetConnectionString("Postgres")
                 ?? throw new InvalidOperationException("Missing db conn string");
 
-            Console.WriteLine($"Connection string value: {connectionString}");
-            Console.WriteLine($"Connection string length: {connectionString.Length}");
-
             builder.Services.AddDbContext<AppDbContext>(opts =>
             {
                 opts.UseNpgsql(connectionString);
@@ -33,6 +30,7 @@ namespace LeagueSquadApi.Extensions
                 http.DefaultRequestHeaders.Add("X-Riot-Token", riotApiKey);
                 http.Timeout = TimeSpan.FromSeconds(10);
             });
+
             builder.Services.AddScoped<IPlayerService, PlayerService>();
             builder.Services.AddScoped<ISquadService, SquadService>();
             builder.Services.AddScoped<ISquadMatchService, SquadMatchService>();
@@ -40,8 +38,10 @@ namespace LeagueSquadApi.Extensions
             builder.Services.AddScoped<IRiotService, RiotService>();
             builder.Services.AddScoped<IParticipantService, ParticipantService>();
             builder.Services.AddScoped<IMatchAggregatedStatsService, MatchAggregatedStatsService>();
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
             builder.Services.AddCors(opt =>
             {
                 opt.AddPolicy(
@@ -66,6 +66,13 @@ namespace LeagueSquadApi.Extensions
             app.UseSwagger();
             app.UseSwaggerUI();
             app.UseCors("frontend");
+        }
+
+        public static async Task ApplyMigrationsAsync(this WebApplication app)
+        {
+            using var scope = app.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await db.Database.MigrateAsync();
         }
     }
 }
