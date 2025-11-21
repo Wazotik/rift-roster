@@ -1,16 +1,29 @@
 services:
-  db:
-    image: postgres:16
-    container_name: lst_pg
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-      # any .sql/.sql.gz in this folder runs automatically on FIRST init of the volume
-      # - ./db/migrations:/docker-entrypoint-initdb.d:ro
+    db:
+        image: postgres:16
+        container_name: lst_pg
+        ports:
+        - "${POSTGRES_PORT:-5432}:5432"
+        environment:
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+            POSTGRES_DB: ${POSTGRES_DB}
+        volumes:
+        - pgdata:/var/lib/postgresql/data
+    api:
+        build:
+            context: ./backend/Api/LeagueSquadApi
+            dockerfile: Dockerfile
+        container_name: riftroster-api
+        depends_on:
+            - db
+        environment:
+            ASPNETCORE_ENVIRONMENT: Development
+            DB_CONN_STRING: Host=db;Port=${POSTGRES_PORT:-5432};Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+            RIOT_API_KEY: ${RIOT_API_KEY}
+        ports:
+            - "5210:8080"
+
 volumes:
   pgdata:
+

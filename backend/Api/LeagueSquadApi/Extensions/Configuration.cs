@@ -1,7 +1,7 @@
 ﻿using LeagueSquadApi.Data;
-using Microsoft.EntityFrameworkCore;
 using LeagueSquadApi.Services;
 using LeagueSquadApi.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace LeagueSquadApi.Extensions
 {
@@ -9,17 +9,23 @@ namespace LeagueSquadApi.Extensions
     {
         public static void RegisterServices(this WebApplicationBuilder builder)
         {
-            var riotApiKey = builder.Configuration["RiotApiKey"] ?? throw new InvalidOperationException("Missing riot api key");
-            var connectionString = builder.Configuration.GetConnectionString("Postgres") ?? throw new InvalidOperationException("Missing db conn string");
+            var connectionString =
+                Environment.GetEnvironmentVariable("DB_CONN_STRING")
+                ?? builder.Configuration.GetConnectionString("Postgres")
+                ?? throw new InvalidOperationException("Missing db conn string");
 
             builder.Services.AddDbContext<AppDbContext>(opts =>
             {
                 opts.UseNpgsql(connectionString);
             });
+
+            var riotApiKey =
+                Environment.GetEnvironmentVariable("RIOT_API_KEY")
+                ?? builder.Configuration["RiotApiKey"]
+                ?? throw new InvalidOperationException("Missing riot api key");
+
             builder.Services.AddHttpClient<IRiotClient, RiotClient>(http =>
             {
-                Console.WriteLine(riotApiKey);
-                Console.WriteLine(connectionString);
                 http.BaseAddress = new Uri("https://americas.api.riotgames.com/");
                 http.DefaultRequestHeaders.Add("X-Riot-Token", riotApiKey);
                 http.Timeout = TimeSpan.FromSeconds(10);
@@ -35,21 +41,28 @@ namespace LeagueSquadApi.Extensions
             builder.Services.AddSwaggerGen();
             builder.Services.AddCors(opt =>
             {
-                opt.AddPolicy("frontend", p =>
-                    p.WithOrigins("http://localhost:5173")
-                     .AllowAnyHeader()
-                     .AllowAnyMethod());
+                opt.AddPolicy(
+                    "frontend",
+                    p =>
+                    {
+                        var allowedOrigins = new[]
+                        {
+                            "http://localhost:5173",
+                            "https://riftroster.netlify.app", // update with actual Netlify URL
+                            "https://www.riftroster.netlify.app",
+                        };
+
+                        p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod();
+                    }
+                );
             });
         }
 
         public static void RegisterMiddlewares(this WebApplication app)
         {
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseCors("frontend");
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+            app.UseSwagger();
+            app.UseSwaggerUI();
+            app.UseCors("frontend");
         }
     }
 }
