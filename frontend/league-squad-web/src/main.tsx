@@ -14,7 +14,11 @@ import { queryClient } from './lib/queryClient.ts'
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
-        <MantineProvider defaultColorScheme='dark' theme={{ defaultRadius: 'md'}}>
+        <MantineProvider defaultColorScheme='dark' theme={{ 
+            defaultRadius: 'md',
+            fontFamily: 'Karla, sans-serif',
+            headings: { fontFamily: 'Karla, sans-serif' }
+        }}>
             <Notifications />
             <QueryClientProvider client={queryClient}>
                 <BrowserRouter>
