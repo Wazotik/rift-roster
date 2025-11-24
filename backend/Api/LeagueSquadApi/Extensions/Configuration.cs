@@ -1,7 +1,13 @@
 ﻿using LeagueSquadApi.Data;
+using LeagueSquadApi.Data.Models;
+using LeagueSquadApi.Dtos;
 using LeagueSquadApi.Services;
 using LeagueSquadApi.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace LeagueSquadApi.Extensions
 {
@@ -9,6 +15,39 @@ namespace LeagueSquadApi.Extensions
     {
         public static void RegisterServices(this WebApplicationBuilder builder)
         {
+
+            if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("LocalDevelopment"))
+            {
+                builder.Configuration.AddUserSecrets<Program>(optional: true);
+            }
+
+            var jwtSection = builder.Configuration.GetSection("Jwt");
+            var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? jwtSection["Key"] ?? throw new InvalidOperationException("Missing jwt secret key");
+            var jwtIssuer = jwtSection["Issuer"] ?? throw new InvalidOperationException("Missing jwt issuer ");
+            var jwtAudience = jwtSection["Audience"] ?? throw new InvalidOperationException("Missing jwt audience");
+
+
+            builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+
+            builder.Services
+                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(opts =>
+                {
+                    opts.TokenValidationParameters = new()
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = jwtIssuer,
+                        ValidateAudience = true,
+                        ValidAudience = jwtAudience,
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.FromSeconds(30),
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+                    };
+                });
+
+            builder.Services.AddAuthorization();
+
             var connectionString =
                 Environment.GetEnvironmentVariable("DB_CONN_STRING")
                 ?? builder.Configuration.GetConnectionString("Postgres")
@@ -31,6 +70,9 @@ namespace LeagueSquadApi.Extensions
                 http.Timeout = TimeSpan.FromSeconds(10);
             });
 
+            builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IPlayerService, PlayerService>();
             builder.Services.AddScoped<ISquadService, SquadService>();
             builder.Services.AddScoped<ISquadMatchService, SquadMatchService>();
@@ -66,6 +108,8 @@ namespace LeagueSquadApi.Extensions
             app.UseSwagger();
             app.UseSwaggerUI();
             app.UseCors("frontend");
+            app.UseAuthentication();
+            app.UseAuthorization();
         }
 
         public static async Task ApplyMigrationsAsync(this WebApplication app)

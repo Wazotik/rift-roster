@@ -11,6 +11,10 @@ await app.ApplyMigrationsAsync();
 
 app.RegisterMiddlewares();
 
+app.RegisterUserEndpoints();
+
+app.RegisterAuthEndpoints();
+
 app.RegisterSquadEndpoints();
 
 app.RegisterPlayerEndpoints();

@@ -5,7 +5,7 @@ namespace LeagueSquadApi.Endpoints
 {
     public static class ResultStatusToIResultMapper<T>
     {
-        public static IResult ToHttp(ServiceResult<T> serviceResult, string uri = "")
+        public static IResult ToHttp(ServiceResult<T> serviceResult, string uri = "", string msg = "")
         {
             switch (serviceResult.Status)
             {
@@ -36,7 +36,7 @@ namespace LeagueSquadApi.Endpoints
 
     public static class ResultStatusToIResultMapper
     {
-        public static IResult ToHttp(ServiceResult serviceResult)
+        public static IResult ToHttp(ServiceResult serviceResult, string uri = "", string msg = "")
         {
             switch (serviceResult.Status)
             {

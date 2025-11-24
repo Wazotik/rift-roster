@@ -7,6 +7,7 @@ namespace LeagueSquadApi.Data
     {
         public AppDbContext(DbContextOptions options) : base(options) { }
 
+        public DbSet<User> User => Set<User>();
         public DbSet<Player> Player => Set<Player>();
         public DbSet<Match> Match => Set<Match>();
         public DbSet<MatchTimeline> MatchTimeline => Set<MatchTimeline>();
@@ -21,12 +22,17 @@ namespace LeagueSquadApi.Data
         {
             base.OnModelCreating(mb);
 
+            mb.Entity<User>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
             mb.Entity<Player>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
             mb.Entity<Match>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
             mb.Entity<Squad>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
             mb.Entity<SquadMember>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
             mb.Entity<SquadMatch>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
             mb.Entity<MatchAggregatedStats>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+
+            mb.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
 
             mb.Entity<Participant>()
               .Property(x => x.ParticipantsJson)

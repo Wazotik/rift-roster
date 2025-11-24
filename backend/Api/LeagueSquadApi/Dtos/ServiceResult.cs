@@ -5,10 +5,11 @@ namespace LeagueSquadApi.Dtos
     public class ServiceResult
     {
         public ResultStatus? Status { get; init; }
-        public bool IsSuccessful { 
-            get { return Status == ResultStatus.Success || Status == ResultStatus.Created || Status == ResultStatus.NoContent; } 
+        public bool IsSuccessful
+        {
+            get { return Status == ResultStatus.Success || Status == ResultStatus.Created || Status == ResultStatus.NoContent; }
         }
-
+        public string? Message { get; init; }
 
         private ServiceResult() { }
 
@@ -17,9 +18,9 @@ namespace LeagueSquadApi.Dtos
         {
             return new ServiceResult { Status = status };
         }
-        public static ServiceResult Fail(ResultStatus? status)
+        public static ServiceResult Fail(ResultStatus? status, string? msg = "")
         {
-            return new ServiceResult { Status = status };
+            return new ServiceResult { Status = status, Message = msg };
         }
     }
 
@@ -27,8 +28,11 @@ namespace LeagueSquadApi.Dtos
     {
         public ResultStatus? Status { get; init; }
         public T? Value { get; init; }
-        public bool IsSuccessful { 
-            get { return Status == ResultStatus.Success || Status == ResultStatus.Created || Status == ResultStatus.NoContent; } 
+        public string? Message { get; init; }
+
+        public bool IsSuccessful
+        {
+            get { return Status == ResultStatus.Success || Status == ResultStatus.Created || Status == ResultStatus.NoContent; }
         }
 
 
@@ -39,13 +43,13 @@ namespace LeagueSquadApi.Dtos
         {
             return new ServiceResult<T> { Status = status, Value = value };
         }
-        public static ServiceResult<T> Fail(ResultStatus? status, T value)
+        public static ServiceResult<T> Fail(ResultStatus? status, T value, string? msg = "")
         {
-            return new ServiceResult<T> { Status = status, Value = value };
+            return new ServiceResult<T> { Status = status, Value = value, Message = msg };
         }
-        public static ServiceResult<T> Fail(ResultStatus? status)
+        public static ServiceResult<T> Fail(ResultStatus? status, string? msg = "")
         {
-            return new ServiceResult<T> { Status = status };
+            return new ServiceResult<T> { Status = status, Message = msg };
         }
     }
 }
