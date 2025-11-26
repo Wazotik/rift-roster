@@ -5,8 +5,8 @@ namespace LeagueSquadApi.Services.Interfaces
     public interface ISquadService
     {
         Task<ServiceResult<SquadResponse>> GetAsync(long id, CancellationToken ct);
-        Task<ServiceResult<List<SquadResponse>>> GetAllAsync(CancellationToken ct);
-        Task<ServiceResult<SquadResponse>> AddAsync(SquadRequest req, CancellationToken ct);
+        Task<ServiceResult<List<SquadResponse>>> GetAllAsync(int userId, CancellationToken ct);
+        Task<ServiceResult<SquadResponse>> AddAsync(int userId, SquadRequest req, CancellationToken ct);
         Task<ServiceResult<SquadResponse>> UpdateAsync(long id, SquadRequest req, CancellationToken ct);
         Task<ServiceResult> DeleteAsync(long id, CancellationToken ct);
         Task<ServiceResult<SquadMemberResponse>> AddMemberAsync(long id, SquadMemberRequest req, IPlayerService ps, CancellationToken ct);

@@ -23,15 +23,16 @@ namespace LeagueSquadApi.Services
             return ServiceResult<SquadResponse>.Ok(new SquadResponse(squad.Id, squad.Name, squad.IconUrl, squad.CreatedAt));
         }
 
-        public async Task<ServiceResult<List<SquadResponse>>> GetAllAsync(CancellationToken ct)
+        public async Task<ServiceResult<List<SquadResponse>>> GetAllAsync(int userId, CancellationToken ct)
         {
-            var squads = await db.Squad.OrderBy(s => s.Id).Select(s => new SquadResponse(s.Id, s.Name, s.IconUrl, s.CreatedAt)).ToListAsync(ct);
+            // add user id check
+            var squads = await db.Squad.Where(u => u.CreatorId == userId).OrderBy(s => s.Id).Select(s => new SquadResponse(s.Id, s.Name, s.IconUrl, s.CreatedAt)).ToListAsync(ct);
             return ServiceResult<List<SquadResponse>>.Ok(squads);
         }
 
-        public async Task<ServiceResult<SquadResponse>> AddAsync(SquadRequest req, CancellationToken ct)
+        public async Task<ServiceResult<SquadResponse>> AddAsync(int userId, SquadRequest req, CancellationToken ct)
         {
-            Squad squad = new Squad() { Name = req.Name, IconUrl = req.IconUrl };
+            Squad squad = new Squad() { Name = req.Name, CreatorId = userId, IconUrl = req.IconUrl };
             await db.Squad.AddAsync(squad, ct);
             await db.SaveChangesAsync(ct);
             return ServiceResult<SquadResponse>.Ok(new SquadResponse(squad.Id, squad.Name, squad.IconUrl, squad.CreatedAt), ResultStatus.Created);
@@ -112,17 +113,12 @@ namespace LeagueSquadApi.Services
             //if (squad.SquadMatchCount == 5 && timeElapsed.Minutes < 2)
             if (!forceRefresh && squad.SquadMatchCount == 5)
             {
-                Console.WriteLine("squadmatchcount is 5");
                 var firstSquadMatch = await db.SquadMatch.Where(sm => sm.SquadId == id).FirstOrDefaultAsync(ct);
                 if (firstSquadMatch != null)
                 {
-                    Console.WriteLine("first squad match exists");
                     var timeElapsed = DateTimeOffset.Now - firstSquadMatch.CreatedAt;
-                    Console.WriteLine(timeElapsed.ToString());
-                    Console.WriteLine(timeElapsed.TotalMinutes.ToString());
                     if (timeElapsed.TotalMinutes < 2)
                     {
-                        Console.WriteLine("there are 5 squad matches and its been less than 2 minutes!");
                         squadMatches = await db.SquadMatch.Where(sm => sm.SquadId == id).Join(db.Match, sm => sm.MatchId, m => m.Id, (sm, m) =>
                            new SquadMatchResponse(sm.SquadId, sm.MatchId, sm.ReasonForAddition, m.QueueId, m.GameStart, m.GameEnd, m.DurationSeconds, m.Mode, m.GameType, m.MapId, sm.CreatedAt)).ToListAsync(ct);
                         return ServiceResult<List<SquadMatchResponse>>.Ok(squadMatches);
@@ -130,8 +126,6 @@ namespace LeagueSquadApi.Services
                 }
             }
 
-            Console.WriteLine("doing normal!!!");
-            if (squad.SquadMatchCount < 5) Console.WriteLine("SQUAD MATCHES ARE NOT 5 YET");
             //if (timeElapsed.Minutes < 2) Console.WriteLine("its been longer than 2 minutes");
             // get all squad members from squad
             var res = await GetAllMembersAsync(id, ct);
@@ -159,20 +153,14 @@ namespace LeagueSquadApi.Services
                 squad.SquadMatchCount = 0;
                 squadMatchesCount = 0;
                 await db.SaveChangesAsync(ct);
-
-                Console.WriteLine("deleting existing 5 squad matches");
                 await db.SquadMatch.Where(sm => sm.SquadId == id).ExecuteDeleteAsync(ct);
-
             }
 
-            Console.WriteLine("now adding!");
             // for every match id, fetch the riot match, then check if every squadmemberid is in the riot match's particpant id list
             foreach (var matchId in matchIds)
             {
-                Console.WriteLine("match id", matchId);
                 if (squadMatchesCount >= 5)
                 {
-                    Console.WriteLine("Hit 5 match limit");
                     break;
                 }
                 if (existingSquadMatchIds.Contains(matchId)) continue;
@@ -180,11 +168,9 @@ namespace LeagueSquadApi.Services
                 var resMatch = await rs.GetMatchAsync(matchId, ct);
                 if (!resMatch.IsSuccessful)
                 {
-                    Console.WriteLine($"Failed to fetch match {matchId}: {resMatch.Status}");
                     continue;
                 }
                 var match = resMatch.Value;
-                Console.WriteLine("match id", match.MatchId);
 
                 bool addMatch = true;
 

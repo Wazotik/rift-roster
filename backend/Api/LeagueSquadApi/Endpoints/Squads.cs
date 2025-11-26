@@ -1,5 +1,7 @@
 ﻿using LeagueSquadApi.Dtos;
 using LeagueSquadApi.Services.Interfaces;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace LeagueSquadApi.Endpoints
 {
@@ -7,14 +9,16 @@ namespace LeagueSquadApi.Endpoints
     {
         public static void RegisterSquadEndpoints(this IEndpointRouteBuilder routes)
         {
-            var squads = routes.MapGroup("/squads");
+            var squads = routes.MapGroup("/squads").RequireAuthorization();
 
             // Create a squad
             squads.MapPost(
                 "",
-                async (SquadRequest req, ISquadService ss, CancellationToken ct) =>
+                async (ClaimsPrincipal user, SquadRequest req, ISquadService ss, CancellationToken ct) =>
                 {
-                    var res = await ss.AddAsync(req, ct);
+                    var userId = user.FindFirstValue(JwtRegisteredClaimNames.Sub);
+                    if (userId == null) return Results.Unauthorized();
+                    var res = await ss.AddAsync(int.Parse(userId), req, ct);
                     return ResultStatusToIResultMapper<SquadResponse>.ToHttp(
                         res,
                         $"/squads/{res?.Value?.Id}"
@@ -35,9 +39,11 @@ namespace LeagueSquadApi.Endpoints
             // Get all squads
             squads.MapGet(
                 "",
-                async (ISquadService ss, CancellationToken ct) =>
+                async (ClaimsPrincipal user, ISquadService ss, CancellationToken ct) =>
                 {
-                    var res = await ss.GetAllAsync(ct);
+                    var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+                    if (userId == null) return Results.Unauthorized();
+                    var res = await ss.GetAllAsync(int.Parse(userId), ct);
                     return ResultStatusToIResultMapper<List<SquadResponse>>.ToHttp(res);
                 }
             );

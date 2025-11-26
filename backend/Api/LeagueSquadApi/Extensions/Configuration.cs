@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 namespace LeagueSquadApi.Extensions
@@ -82,7 +83,34 @@ namespace LeagueSquadApi.Extensions
             builder.Services.AddScoped<IMatchAggregatedStatsService, MatchAggregatedStatsService>();
 
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.AddSecurityDefinition("bearerAuth", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "JWT Authorization header using the Bearer scheme."
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "bearerAuth"
+                            }
+                        },
+                        new string[] {}
+                    },
+                });
+
+            });
 
             builder.Services.AddCors(opt =>
             {
@@ -93,7 +121,7 @@ namespace LeagueSquadApi.Extensions
                         var allowedOrigins = new[]
                         {
                             "http://localhost:5173",
-                            "https://riftroster.netlify.app", // update with actual Netlify URL
+                            "https://riftroster.netlify.app",
                             "https://www.riftroster.netlify.app",
                         };
 

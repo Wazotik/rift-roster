@@ -67,7 +67,6 @@ namespace LeagueSquadApi.Services
 
             var urlRegion =
                 $"{http.BaseAddress}riot/account/v1/region/by-game/lol/by-puuid/{Uri.EscapeDataString(bodyCore.Puuid)}";
-            Console.WriteLine(urlRegion);
             var resRegion = await http.GetAsync(urlRegion, ct);
             if (!resRegion.IsSuccessStatusCode)
                 return RiotHttpResult<RiotAccountResponse>.Fail((int)resCore.StatusCode);

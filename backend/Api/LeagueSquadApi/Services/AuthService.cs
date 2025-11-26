@@ -1,11 +1,7 @@
 ﻿using LeagueSquadApi.Data;
-using LeagueSquadApi.Data.Models;
 using LeagueSquadApi.Dtos;
 using LeagueSquadApi.Dtos.Enums;
 using LeagueSquadApi.Services.Interfaces;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -33,10 +29,10 @@ namespace LeagueSquadApi.Services
             var user = resFindUser.Value;
             if (user == null) return ServiceResult<string>.Fail(ResultStatus.Unknown);
 
-            // if found, build list of claims (sub = id, name, and role) 
+            // if found, build list of claims (name identifier = userId, name, and role) 
             var claims = new List<Claim>
             {
-                new(JwtRegisteredClaimNames.Sub, (user.Id).ToString()),
+                new(ClaimTypes.NameIdentifier, (user.Id).ToString()),
                 new(ClaimTypes.Name, user.Email),
                 new(ClaimTypes.Role, user.Role ?? "User")
             };

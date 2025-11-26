@@ -3,6 +3,7 @@ using System;
 using LeagueSquadApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LeagueSquadApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251126100136_IntegrateUsers")]
+    partial class IntegrateUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -216,10 +219,6 @@ namespace LeagueSquadApi.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<int>("CreatorId")
-                        .HasColumnType("integer")
-                        .HasColumnName("creator_id");
-
                     b.Property<string>("IconUrl")
                         .IsRequired()
                         .HasColumnType("text")
@@ -233,6 +232,10 @@ namespace LeagueSquadApi.Migrations
                     b.Property<int>("SquadMatchCount")
                         .HasColumnType("integer")
                         .HasColumnName("squad_match_count");
+
+                    b.Property<int>("creatorId")
+                        .HasColumnType("integer")
+                        .HasColumnName("creator_id");
 
                     b.HasKey("Id");
 

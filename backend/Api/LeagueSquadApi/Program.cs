@@ -1,5 +1,7 @@
 using LeagueSquadApi.Endpoints;
 using LeagueSquadApi.Extensions;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,5 +26,10 @@ app.RegisterRiotEndpoints();
 app.MapGet("/", () => "Server is up!");
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok", timeUtc = DateTime.UtcNow }));
+
+app.MapGet("/me", (ClaimsPrincipal user) =>
+{
+    return Results.Ok(new { userEmail = user.FindFirstValue(ClaimTypes.Name) });
+}).RequireAuthorization();
 
 app.Run();

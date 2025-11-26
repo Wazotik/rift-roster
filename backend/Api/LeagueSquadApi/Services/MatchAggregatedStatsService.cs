@@ -60,19 +60,6 @@ namespace LeagueSquadApi.Services
                     participantsStatsRaw.Add(participant);
             }
 
-            Console.WriteLine("raw stats:");
-
-            foreach (var p in participantsStatsRaw)
-            {
-                Console.WriteLine("new player");
-                Console.WriteLine(p.Kills);
-                Console.WriteLine(p.GoldEarned);
-                Console.WriteLine(p.TotalMinionsKilled);
-                Console.WriteLine(p.Challenges.DragonTakedowns);
-                Console.WriteLine(p.Challenges.RiftHeraldTakedowns);
-                Console.WriteLine(p.Challenges.BaronTakedowns);
-            }
-
             // Calculate total kills and total gold earned per team
             var teamKillsCount = new Dictionary<int, int>();
             var teamGoldEarnedCount = new Dictionary<int, int>();
@@ -211,22 +198,6 @@ namespace LeagueSquadApi.Services
             root["participantsStats"] = participantsStatsArr;
 
             var statsJson = root.ToJsonString();
-
-            Console.WriteLine("count check");
-
-            foreach (KeyValuePair<int, int> pair in teamObjectivesCount)
-            {
-                Console.WriteLine($"team id {pair.Key}");
-                Console.WriteLine($"obj count {pair.Value}");
-            }
-
-            foreach (KeyValuePair<int, int> pair in teamDragonsCount)
-            {
-                Console.WriteLine($"team id {pair.Key}");
-                Console.WriteLine($"dragons count {pair.Value}");
-            }
-
-            Console.WriteLine(statsJson);
 
             // add to db
             MatchAggregatedStats mas = new MatchAggregatedStats()

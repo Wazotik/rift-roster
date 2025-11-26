@@ -9,6 +9,10 @@ namespace LeagueSquadApi.Data.Models
         [Column("squad_id")]
         public long Id { get; set; }
 
+        [ForeignKey(nameof(User))]
+        [Column("creator_id")]
+        public int CreatorId { get; set; }
+
         [Column("name")]
         public string Name { get; set; } = string.Empty;
 
