@@ -151,8 +151,7 @@ namespace LeagueSquadApi.Extensions
                         p.WithOrigins(allowedOrigins.Distinct().ToArray())
                          .AllowAnyHeader()
                          .AllowAnyMethod()
-                         .AllowCredentials()
-                         .SetIsOriginAllowedToAllowWildcardSubdomains();
+                         .AllowCredentials();
                     }
                 );
             });
