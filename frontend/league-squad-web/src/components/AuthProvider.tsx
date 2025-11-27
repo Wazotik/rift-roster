@@ -49,7 +49,7 @@ const AuthProvider = ({ children }: AuthContextPropsType) => {
         mutationFn: logout,
         onSuccess: () => {
             queryClient.setQueryData(["user"], undefined);
-            queryClient.invalidateQueries({ queryKey: ["user"] });
+            queryClient.removeQueries({ queryKey: ["user"] });
             notifications.show({
                 title: 'Success!',
                 message: 'Logged out successfully',
