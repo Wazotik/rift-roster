@@ -48,14 +48,14 @@ const AuthProvider = ({ children }: AuthContextPropsType) => {
     const { mutate: logoutMutate } = useMutation({
         mutationFn: logout,
         onSuccess: () => {
+            queryClient.setQueryData(["user"], undefined);
+            queryClient.invalidateQueries({ queryKey: ["user"] });
             notifications.show({
                 title: 'Success!',
                 message: 'Logged out successfully',
                 color: 'green',
             });
-            queryClient.setQueryData(["user"], undefined);
-            queryClient.invalidateQueries({ queryKey: ["user"] });
-            navigate("/");
+            setTimeout(() => navigate("/"), 0);
         },
         onError: (error: Error) => {
             notifications.show({
