@@ -176,9 +176,6 @@ const Landing = () => {
             <Box py={40} style={{ borderTop: '1px solid #e0e0e0' }}>
                 <Container>
                     <Flex direction="column" align="center" gap="xs">
-                        <Text ta="center" c="dimmed">
-                            Made with ❤️ for the League community
-                        </Text>
                         <Text ta="center" c="dimmed" size="sm">
                             © {new Date().getFullYear()} Wahaj Haider
                         </Text>

@@ -124,20 +124,35 @@ namespace LeagueSquadApi.Extensions
 
             });
 
+            var allowedOriginsConfig = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS") 
+                ?? builder.Configuration["AllowedOrigins"];
+            
+            var allowedOrigins = new List<string>
+            {
+                "http://localhost:5173",
+                "https://riftroster.netlify.app",
+                "https://www.riftroster.netlify.app",
+            };
+
+            if (!string.IsNullOrEmpty(allowedOriginsConfig))
+            {
+                var envOrigins = allowedOriginsConfig.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(o => o.Trim())
+                    .Where(o => !string.IsNullOrEmpty(o));
+                allowedOrigins.AddRange(envOrigins);
+            }
+
             builder.Services.AddCors(opt =>
             {
                 opt.AddPolicy(
                     "frontend",
                     p =>
                     {
-                        var allowedOrigins = new[]
-                        {
-                            "http://localhost:5173",
-                            "https://riftroster.netlify.app",
-                            "https://www.riftroster.netlify.app",
-                        };
-
-                        p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+                        p.WithOrigins(allowedOrigins.Distinct().ToArray())
+                         .AllowAnyHeader()
+                         .AllowAnyMethod()
+                         .AllowCredentials()
+                         .SetIsOriginAllowedToAllowWildcardSubdomains();
                     }
                 );
             });
@@ -145,9 +160,12 @@ namespace LeagueSquadApi.Extensions
 
         public static void RegisterMiddlewares(this WebApplication app)
         {
+            app.UseCors("frontend");
+            
+            
             app.UseSwagger();
             app.UseSwaggerUI();
-            app.UseCors("frontend");
+            
             app.UseAuthentication();
             app.UseAuthorization();
         }
