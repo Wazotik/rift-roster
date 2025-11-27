@@ -45,6 +45,18 @@ namespace LeagueSquadApi.Extensions
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
                     };
+
+                    opts.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            if (string.IsNullOrEmpty(context.Token) && context.Request.Cookies.TryGetValue("access_token", out var token))
+                            {
+                                context.Token = token;
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
                 });
 
             builder.Services.AddAuthorization();
@@ -125,7 +137,7 @@ namespace LeagueSquadApi.Extensions
                             "https://www.riftroster.netlify.app",
                         };
 
-                        p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod();
+                        p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
                     }
                 );
             });

@@ -16,7 +16,7 @@ namespace LeagueSquadApi.Endpoints
                 "",
                 async (ClaimsPrincipal user, SquadRequest req, ISquadService ss, CancellationToken ct) =>
                 {
-                    var userId = user.FindFirstValue(JwtRegisteredClaimNames.Sub);
+                    var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
                     if (userId == null) return Results.Unauthorized();
                     var res = await ss.AddAsync(int.Parse(userId), req, ct);
                     return ResultStatusToIResultMapper<SquadResponse>.ToHttp(

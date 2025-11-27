@@ -7,7 +7,7 @@ namespace LeagueSquadApi.Endpoints
     {
         public static void RegisterPlayerEndpoints(this IEndpointRouteBuilder routes)
         {
-            var players = routes.MapGroup("/players");
+            var players = routes.MapGroup("/players").RequireAuthorization();
 
             // Get a Player 
             players.MapGet("/{id}", async (string id, IPlayerService ps, CancellationToken ct) =>

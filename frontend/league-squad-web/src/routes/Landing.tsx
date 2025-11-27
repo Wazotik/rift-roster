@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
-import { Container, Flex, Title, Text, Button, Card, Badge, Box, Accordion } from '@mantine/core';
+import { Container, Flex, Title, Text, Button, Badge, Box, Accordion } from '@mantine/core';
+import { useAuth } from '../hooks/useAuth';
 
 const Landing = () => {
     const navigate = useNavigate();
+    const { isAuthenticated } = useAuth();
 
     const currentFeatures = [
         {
@@ -99,10 +101,10 @@ const Landing = () => {
                         </Text>
                         <Button 
                             size="xl" 
-                            onClick={() => navigate('/squads')}
+                            onClick={() => navigate(isAuthenticated ? '/squads' : '/register')}
                             style={{ marginTop: '1rem' }}
                         >
-                            View My Squads
+                            {isAuthenticated ? 'View My Squads' : 'Create an Account'}
                         </Button>
                     </Flex>
                 </Container>

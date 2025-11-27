@@ -1,17 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createSquad, getAllSquads, getSquad, updateSquad } from "../api/squads";
-import type { CreateSquadRequest, SquadResponse, UpdateSquadRequest } from "../types/SquadDtos";
-import { Container, Box, Button, Modal, TextInput, Title, Group, Stack, SimpleGrid, Text, Loader, Image, LoadingOverlay, Select, Flex } from "@mantine/core";
+import { createSquad, getAllSquads } from "../api/squads";
+import type { CreateSquadRequest, SquadResponse } from "../types/SquadDtos";
+import { Container, Box, Button, Modal, TextInput, Title, Group, Stack, SimpleGrid, Text, Loader, Image } from "@mantine/core";
 import { notifications } from '@mantine/notifications';
 import SquadCard from "../components/SquadCard";
 import { useDisclosure } from "@mantine/hooks";
-import { useForm } from '@mantine/form';
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { squadIconOptions } from "../assets/squadIconOptions";
 
 const Squads = () => {
-    const [visible, { toggle }] = useDisclosure(true);
     const [opened, { open, close }] = useDisclosure(false);
     const [newSquadName, setNewSquadName] = useState("");
     const [newSquadImage, setNewSquadImage] = useState("");
@@ -25,7 +23,7 @@ const Squads = () => {
     });
 
     // Create a Squad
-    const { data: createdSquad, mutate: createSquadMutate, isPending: isCreateSquadPending, isSuccess: isCreateSquadSuccess, isError: isCreateSquadError, error: createSquadError } = useMutation<SquadResponse, Error, CreateSquadRequest>({
+    const { data: createdSquad, mutate: createSquadMutate, isPending: isCreateSquadPending } = useMutation<SquadResponse, Error, CreateSquadRequest>({
         mutationFn: createSquad,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["squads"] });
@@ -76,30 +74,32 @@ const Squads = () => {
                     </Button>
                 </Group>
 
-                <Box>
-                    <LoadingOverlay visible={visible && !isSquadsError && !squads} loaderProps={{ children: 'Loading...' }} />
-                    {/* Squads Grid */}
-                    {squads?.length === 0 ? (
-                        <Box ta="center" py="xl">
-                            <Text size="lg" c="dimmed" mb="md">
-                                No squads created yet
-                            </Text>
-                            <Text size="sm" c="dimmed">
-                                Click "New Squad" to create your first squad
-                            </Text>
-                        </Box>
-                    ) : (
-                        <SimpleGrid
-                            cols={{ base: 1, sm: 2, lg: 3 }}
-                            spacing="lg"
-                        >
-                            {squads?.map(squad => (
-                                <SquadCard key={squad.id} squadId={squad.id} name={squad.name} iconUrl={squad.iconUrl} />
-                            ))}
-                        </SimpleGrid>
-                    )
-                    }
-                </Box>
+                {/* Loading State */}
+                {isSquadsLoading ? (
+                    <Box style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
+                        <Loader size="xl" />
+                    </Box>
+                ) : squads?.length === 0 ? (
+                    /* Empty State */
+                    <Box ta="center" py="xl">
+                        <Text size="lg" c="dimmed" mb="md">
+                            No squads created yet
+                        </Text>
+                        <Text size="sm" c="dimmed">
+                            Click "New Squad" to create your first squad
+                        </Text>
+                    </Box>
+                ) : (
+                    /* Squads Grid */
+                    <SimpleGrid
+                        cols={{ base: 1, sm: 2, lg: 3 }}
+                        spacing="lg"
+                    >
+                        {squads?.map(squad => (
+                            <SquadCard key={squad.id} squadId={squad.id} name={squad.name} iconUrl={squad.iconUrl} />
+                        ))}
+                    </SimpleGrid>
+                )}
 
 
                 {/* Create Squad Modal */}

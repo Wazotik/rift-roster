@@ -1,5 +1,6 @@
 ﻿using LeagueSquadApi.Dtos;
 using LeagueSquadApi.Dtos.Enums;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace LeagueSquadApi.Endpoints
 {
@@ -30,7 +31,6 @@ namespace LeagueSquadApi.Endpoints
                 default:
                     return Results.StatusCode(500);
             }
-
         }
     }
 

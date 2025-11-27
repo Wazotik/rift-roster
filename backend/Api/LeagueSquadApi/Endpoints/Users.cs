@@ -8,7 +8,7 @@ namespace LeagueSquadApi.Endpoints
 
         public static void RegisterUserEndpoints(this IEndpointRouteBuilder routes)
         {
-            var users = routes.MapGroup("/users");
+            var users = routes.MapGroup("/users").RequireAuthorization();
 
             //users.MapGet("/{id}", async (int id, IUserService us, CancellationToken ct) =>
             //{

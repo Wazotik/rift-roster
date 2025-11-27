@@ -1,6 +1,5 @@
 using LeagueSquadApi.Endpoints;
 using LeagueSquadApi.Extensions;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);

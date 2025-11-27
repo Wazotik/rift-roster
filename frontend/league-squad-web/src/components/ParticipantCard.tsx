@@ -87,7 +87,6 @@ const ParticipantCard = ({ stats, isSquadMember = false }: ParticipantCardTypes)
 
                 {/* Core Stats Grid */}
                 <Grid gutter="xs">
-                    {/* Combat Stats */}
                     <Grid.Col span={6}>
                         <Stack gap={4}>
                             <Group gap="xs">

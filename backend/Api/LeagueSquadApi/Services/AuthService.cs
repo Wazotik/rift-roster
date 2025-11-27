@@ -58,7 +58,7 @@ namespace LeagueSquadApi.Services
             var resCreateUser = await us.CreateAsync(req, ct);
             if (!resCreateUser.IsSuccessful) return ServiceResult<UserResponse>.Fail(resCreateUser.Status, resCreateUser.Message);
             var u = resCreateUser.Value;
-            return ServiceResult<UserResponse>.Ok(new UserResponse(u.Username, u.Name, u.Email, u.CreatedAt));
+            return ServiceResult<UserResponse>.Ok(new UserResponse(u.Username, u.Name, u.Email, u.Role, u.CreatedAt));
         }
 
     }

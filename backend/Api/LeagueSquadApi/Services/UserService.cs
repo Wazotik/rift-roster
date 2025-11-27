@@ -23,7 +23,14 @@ namespace LeagueSquadApi.Services
         {
             var user = await db.User.Where(u => u.Username == username && u.Password == password).FirstOrDefaultAsync(ct);
             if (user == null) return ServiceResult<UserResponse>.Fail(ResultStatus.NotFound);
-            return ServiceResult<UserResponse>.Ok(new UserResponse(user.Username, user.Name, user.Email, user.CreatedAt));
+            return ServiceResult<UserResponse>.Ok(new UserResponse(user.Username, user.Name, user.Email, user.Role, user.CreatedAt));
+        }
+
+        public async Task<ServiceResult<UserResponse>> GetWithIdAsync(int id, CancellationToken ct)
+        {
+            var user = await db.User.Where(u => u.Id == id).FirstOrDefaultAsync(ct);
+            if (user == null) return ServiceResult<UserResponse>.Fail(ResultStatus.NotFound);
+            return ServiceResult<UserResponse>.Ok(new UserResponse(user.Username, user.Name, user.Email, user.Role, user.CreatedAt));
         }
 
         public async Task<ServiceResult<User>> FindAsync(string username, string password, CancellationToken ct)
@@ -47,7 +54,7 @@ namespace LeagueSquadApi.Services
             var existing = await db.User.AnyAsync(u => u.Username == req.Username, ct);
             if (existing) return ServiceResult<UserResponse>.Fail(ResultStatus.Conflict, "Username already exists!");
 
-            User u = new User() { Username = req.Username, Name = req.Name, Email = req.Email };
+            User u = new User() { Username = req.Username, Name = req.Name, Email = req.Email, Role = "User" };
             var hashedPassword = hasher.HashPassword(u, req.Password);
             u.Password = hashedPassword;
             await db.User.AddAsync(u, ct);
@@ -55,7 +62,7 @@ namespace LeagueSquadApi.Services
             try
             {
                 await db.SaveChangesAsync(ct);
-                return ServiceResult<UserResponse>.Ok(new UserResponse(u.Username, u.Name, u.Email, u.CreatedAt));
+                return ServiceResult<UserResponse>.Ok(new UserResponse(u.Username, u.Name, u.Email, u.Role, u.CreatedAt));
             }
             catch (DbUpdateException ex)
             {

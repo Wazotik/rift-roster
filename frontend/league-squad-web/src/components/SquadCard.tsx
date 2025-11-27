@@ -233,12 +233,10 @@ const SquadCard = ({ squadId, name, iconUrl }: SquadCardTypes) => {
 
                 <Divider />
 
-                {/* View Details Button */}
                 <Button variant="light" component={isSquadEmpty ? undefined : Link} to={`/squads/${squadId}`} disabled={isSquadEmpty} fullWidth>
                     View Details
                 </Button>
 
-                {/* Action Buttons */}
                 <Group grow>
                     <Button variant="filled" onClick={finderHandlers.open} disabled={isSquadFull}>
                         Add Member

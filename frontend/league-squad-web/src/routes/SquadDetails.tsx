@@ -24,8 +24,7 @@ const SquadDetails = () => {
         queryKey: ["squads", squadId, "matches"],
         queryFn: () => getMatches(Number(squadId)),
         staleTime: 2 * 60 * 1000,
-        refetchOnWindowFocus: false,
-        refetchOnMount: false
+        refetchOnWindowFocus: false
     });
 
     const { data: matchDetails, refetch: refetchMatchDetails, isFetching: isMatchDetailsFetching, isLoading: isMatchDetailsLoading, isError: isMatchDetailsError, error: matchDetailsError } = useQuery<SquadMatchDetailsResponse, Error>({
@@ -136,7 +135,6 @@ const SquadDetails = () => {
     return (
         <Container size="xl" py="xl">
             <Stack gap="xl">
-                {/* Back Button */}
                 <Button
                     leftSection={<IconArrowLeft size={16} />}
                     variant="subtle"
@@ -150,7 +148,6 @@ const SquadDetails = () => {
                 {squad && (
                     <Card shadow="sm" padding="lg" radius="md" withBorder>
                         <Stack gap="md">
-                            {/* Squad Header */}
                             <Group justify="space-between" wrap="nowrap">
                                 <Group gap="md">
                                     <Avatar src={squad.iconUrl} size="lg" radius="md" />
@@ -239,7 +236,6 @@ const SquadDetails = () => {
                                 <Title order={2}>Match History</Title>
 
                                 <Grid gutter="lg">
-                                    {/* Match List - Left side on desktop, full width on mobile */}
                                     <Grid.Col span={{ base: 12, md: 4 }}>
                                         <ScrollArea h={600} type="auto">
                                             <Stack gap="sm">
@@ -297,7 +293,6 @@ const SquadDetails = () => {
                                     <Grid.Col span={{ base: 12, md: 8 }}>
                                         {selectedMatch ? (
                                             <Stack gap="md">
-                                                {/* Match Metadata Header */}
                                                 <Card padding="md" radius="md" withBorder>
                                                     <Stack gap="sm">
                                                         <Group justify="space-between">
@@ -305,7 +300,6 @@ const SquadDetails = () => {
                                                             {isMatchDetailsFetching && <Loader size="sm" />}
                                                         </Group>
 
-                                                        {/* Horizontal Match Info Cards */}
                                                         <Grid gutter="xs">
                                                             <Grid.Col span={6}>
                                                                 <Card padding="xs" radius="sm" withBorder>

@@ -1,10 +1,15 @@
-import axios from "axios";
+import axios  from "axios";
 
 const BASE_ADDRESS = import.meta.env.VITE_API_BASE as string;
 
-export const apiGet = async <TResponse>(path: string): Promise<TResponse> => {
+const authAxios = axios.create({
+    withCredentials: true,
+    baseURL: BASE_ADDRESS
+});
+
+export const apiGet = async <TResponse>(path: string, overrideConfig: object = {}): Promise<TResponse> => {
     try {
-        const res = await axios.get<TResponse>(`${BASE_ADDRESS}${path}`);
+        const res = await authAxios.get<TResponse>(`${BASE_ADDRESS}${path}`, overrideConfig);
         // return Promise.resolve(res.data); // ik wrapping with promise is not needed, but it helps my understanding 
         return res.data;
     }
@@ -14,9 +19,9 @@ export const apiGet = async <TResponse>(path: string): Promise<TResponse> => {
     }
 };
 
-export const apiPost = async <TRequest, TResponse>(path: string, payload: TRequest): Promise<TResponse> => {
+export const apiPost = async <TRequest, TResponse>(path: string, payload: TRequest, overrideConfig: object = {}): Promise<TResponse> => {
     try {
-        const res = await axios.post<TResponse>(`${BASE_ADDRESS}${path}`, payload);
+        const res = await authAxios.post<TResponse>(`${BASE_ADDRESS}${path}`, payload, overrideConfig);
         return res.data;
     }
     catch (e: unknown) {
@@ -25,10 +30,10 @@ export const apiPost = async <TRequest, TResponse>(path: string, payload: TReque
     }
 };
 
-export const apiPut = async <TRequest, TResponse>(path: string, payload: TRequest): Promise<TResponse> => {
+export const apiPut = async <TRequest, TResponse>(path: string, payload: TRequest, overrideConfig: object = {}): Promise<TResponse> => {
     try {
         console.log(payload);
-        const res = await axios.put<TResponse>(`${BASE_ADDRESS}${path}`, payload);
+        const res = await authAxios.put<TResponse>(`${BASE_ADDRESS}${path}`, payload, overrideConfig);
         return res.data;
     }
     catch (e: unknown) {
@@ -37,9 +42,9 @@ export const apiPut = async <TRequest, TResponse>(path: string, payload: TReques
     }
 };
 
-export const apiDelete = async <TResponse>(path: string): Promise<TResponse> => {
+export const apiDelete = async <TResponse>(path: string, overrideConfig: object = {}): Promise<TResponse> => {
     try {
-        const res = await axios.delete<TResponse>(`${BASE_ADDRESS}${path}`);
+        const res = await authAxios.delete<TResponse>(`${BASE_ADDRESS}${path}`, overrideConfig);
         return res.data;
     }
     catch (e: unknown) {

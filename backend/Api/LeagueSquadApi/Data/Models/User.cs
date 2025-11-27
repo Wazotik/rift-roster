@@ -23,7 +23,7 @@ namespace LeagueSquadApi.Data.Models
         public string Email { get; set; } = null!;
 
         [Column("role")]
-        public string? Role { get; set; } = "User";
+        public string Role { get; set; } = "User";
 
         [Column("created_at")]
         public DateTimeOffset CreatedAt { get; set; }
