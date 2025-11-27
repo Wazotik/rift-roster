@@ -22,6 +22,7 @@ namespace LeagueSquadApi.Endpoints
                     HttpOnly = true,
                     Secure = true,
                     SameSite = SameSiteMode.None,
+                    Path = "/",
                     Expires = DateTimeOffset.UtcNow.AddMinutes(15)
                 };
                 http.Response.Cookies.Append("access_token", token, cookieOptions);
@@ -42,7 +43,8 @@ namespace LeagueSquadApi.Endpoints
                 http.Response.Cookies.Delete("access_token", new CookieOptions
                 {
                     SameSite = SameSiteMode.None,
-                    Secure = true
+                    Secure = true,
+                    Path = "/"
                 });
                 return Results.Ok();
             });
