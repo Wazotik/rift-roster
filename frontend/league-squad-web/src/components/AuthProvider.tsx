@@ -53,6 +53,7 @@ const AuthProvider = ({ children }: AuthContextPropsType) => {
                 message: 'Logged out successfully',
                 color: 'green',
             });
+            queryClient.setQueryData(["user"], undefined);
             queryClient.invalidateQueries({ queryKey: ["user"] });
             navigate("/");
         },
