@@ -37,6 +37,7 @@ namespace LeagueSquadApi.Services
                 new(ClaimTypes.Role, user.Role ?? "User")
             };
 
+            if (string.IsNullOrWhiteSpace(jwt.Key)) throw new InvalidOperationException("JWT Key is missing");
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key));    // get secret key, convert to bytes, wrap in crypto key object
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);     // use key to sign the 
 

@@ -28,33 +28,44 @@ namespace LeagueSquadApi.Extensions
             var jwtAudience = jwtSection["Audience"] ?? throw new InvalidOperationException("Missing jwt audience");
 
 
-            builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
-            builder.Services.Configure<JwtOptions>(opts => opts.Key = jwtKey);
+            // builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+            builder.Services.Configure<JwtOptions>(opts =>
+            {
+                opts.Key      = jwtKey;
+                opts.Issuer   = jwtIssuer;
+                opts.Audience = jwtAudience;
+                opts.ExpiresMinutes = int.Parse(jwtSection["ExpiresMinutes"] ?? "10080"); // e.g. 7 days
+            });
 
             builder.Services
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(opts =>
                 {
-                    opts.TokenValidationParameters = new()
+                    opts.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateIssuer = true,
                         ValidIssuer = jwtIssuer,
-                        ValidateAudience = true,
                         ValidAudience = jwtAudience,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
                         ValidateLifetime = true,
-                        ClockSkew = TimeSpan.FromSeconds(30),
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+                        ClockSkew = TimeSpan.Zero,
                     };
 
                     opts.Events = new JwtBearerEvents
                     {
                         OnMessageReceived = context =>
                         {
-                            if (string.IsNullOrEmpty(context.Token) && context.Request.Cookies.TryGetValue("access_token", out var token))
+                            if (context.Request.Cookies.TryGetValue("access_token", out var token))
                             {
                                 context.Token = token;
                             }
+                            return Task.CompletedTask;
+                        },
+                                    OnAuthenticationFailed = ctx =>
+                        {
+                            Console.WriteLine($"JWT failed: {ctx.Exception}");
                             return Task.CompletedTask;
                         }
                     };
