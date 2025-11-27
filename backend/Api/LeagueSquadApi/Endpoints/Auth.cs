@@ -19,8 +19,8 @@ namespace LeagueSquadApi.Endpoints
                 var cookieOptions = new CookieOptions()
                 {
                     HttpOnly = true,
-                    SameSite = SameSiteMode.None,
                     Secure = true,
+                    SameSite = SameSiteMode.None,
                     Expires = DateTimeOffset.UtcNow.AddMinutes(15)
                 };
                 http.Response.Cookies.Append("access_token", token, cookieOptions);

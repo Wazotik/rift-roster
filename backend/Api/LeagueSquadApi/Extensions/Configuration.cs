@@ -29,6 +29,7 @@ namespace LeagueSquadApi.Extensions
 
 
             builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+            builder.Services.Configure<JwtOptions>(opts => opts.Key = jwtKey);
 
             builder.Services
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
