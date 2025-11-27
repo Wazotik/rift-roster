@@ -1,5 +1,6 @@
 ﻿using LeagueSquadApi.Dtos;
 using LeagueSquadApi.Services.Interfaces;
+using System.Net;
 using System.Security.Claims;
 
 namespace LeagueSquadApi.Endpoints
@@ -38,7 +39,11 @@ namespace LeagueSquadApi.Endpoints
 
             auth.MapPost("/logout", (HttpContext http, CancellationToken ct) =>
             {
-                http.Response.Cookies.Delete("access_token");
+                http.Response.Cookies.Delete("access_token", new CookieOptions
+                {
+                    SameSite = SameSiteMode.None,
+                    Secure = true
+                });
                 return Results.Ok();
             });
 
