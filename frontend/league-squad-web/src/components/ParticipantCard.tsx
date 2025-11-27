@@ -1,4 +1,4 @@
-import { Card, Group, Stack, Text, Badge, Divider, Grid, Box, Tooltip, Tabs } from "@mantine/core";
+import { Card, Group, Stack, Text, Badge, Divider, Grid, Box, Tooltip  } from "@mantine/core";
 import { IconSword, IconEye, IconTrophy, IconCoins, IconTarget } from "@tabler/icons-react";
 import type { ParticipantStats } from "../types/ParticipantDtos";
 

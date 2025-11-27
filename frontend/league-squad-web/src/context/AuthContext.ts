@@ -1,4 +1,4 @@
-import { Context, createContext, ReactNode } from "react";
+import { type Context, createContext } from "react";
 import type { UserResponse } from "../types/UserDtos";
 import type { LoginRequest, RegisterRequest } from "../types/AuthenticationDtos";
 

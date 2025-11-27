@@ -1,14 +1,13 @@
-import { Card, Box, Flex, Text, Image, Group, Button, Modal, Divider, Stack, Badge, TextInput, Select, Collapse, ActionIcon } from "@mantine/core"
+import { Card, Box, Text, Image, Group, Button, Modal, Divider, Stack, Badge, TextInput, Select, Collapse } from "@mantine/core"
 import { notifications } from '@mantine/notifications';
-import { IconChevronDown, IconChevronUp, IconMug } from '@tabler/icons-react'
+import { IconChevronDown, IconChevronUp } from '@tabler/icons-react'
 import { useDisclosure } from "@mantine/hooks";
 import { useEffect, useState } from "react";
 import type { SquadResponse, UpdateSquadRequest } from "../types/SquadDtos";
-import { useMutation, usePrefetchQuery, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteSquad, updateSquad } from "../api/squads";
 import { addSquadMember, getSquadMembers } from "../api/squadMembers";
 import type { AddSquadMemberRequest, SquadMemberResponse } from "../types/SquadMemberDtos";
-import { apiGet } from "../lib/apiClient";
 import { getRiotAccountUsingRiotId } from "../api/riotAccounts";
 import type { RiotAccountResponse } from "../types/RiotAccountDtos";
 import { Link } from "react-router-dom";
@@ -29,9 +28,6 @@ const SquadCard = ({ squadId, name, iconUrl }: SquadCardTypes) => {
     const [findGameName, setFindGameName] = useState("");
     const [findTagline, setFindTagline] = useState("");
     const [riotAccountPuuid, setRiotAccountPuuid] = useState("");
-    const [riotAccountGamename, setRiotAccountGamename] = useState("");
-    const [riotAccountTagline, setRiotAccountTagline] = useState("");
-    const [riotAccoutRegion, setRiotAccountRegion] = useState("");
     const [role, setRole] = useState("");
     const [alias, setAlias] = useState("");
 
