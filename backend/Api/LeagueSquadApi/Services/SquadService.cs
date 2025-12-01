@@ -201,9 +201,9 @@ namespace LeagueSquadApi.Services
                     await using var tx = await db.Database.BeginTransactionAsync(ct);
                     try
                     {
-                        // check is match is already in db
                         MatchResponse matchNeeded;
 
+                        // check if match is already in db
                         var existingMatch = await db.Match.FindAsync(matchId, ct);
                         if (existingMatch != null)
                         {

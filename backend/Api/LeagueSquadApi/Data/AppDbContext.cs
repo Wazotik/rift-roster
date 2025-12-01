@@ -16,6 +16,7 @@ namespace LeagueSquadApi.Data
         public DbSet<SquadMember> SquadMember => Set<SquadMember>();
         public DbSet<SquadMatch> SquadMatch => Set<SquadMatch>();
         public DbSet<MatchAggregatedStats> MatchAggregatedStats => Set<MatchAggregatedStats>();
+        public DbSet<SquadAggregatedStats> SquadAggregatedStats => Set<SquadAggregatedStats>();
 
 
         protected override void OnModelCreating(ModelBuilder mb)
@@ -29,6 +30,7 @@ namespace LeagueSquadApi.Data
             mb.Entity<SquadMember>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
             mb.Entity<SquadMatch>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
             mb.Entity<MatchAggregatedStats>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
+            mb.Entity<SquadAggregatedStats>().Property(x => x.CreatedAt).HasColumnType("timestamptz").HasDefaultValueSql("now()").ValueGeneratedOnAdd();
 
             mb.Entity<User>()
                 .HasIndex(u => u.Username)
@@ -55,6 +57,12 @@ namespace LeagueSquadApi.Data
                 .HasForeignKey(sm => sm.SquadId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            mb.Entity<SquadAggregatedStats>()
+                .HasOne<Squad>()
+                .WithMany()
+                .HasForeignKey(sas => sas.SquadId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             mb.Entity<SquadMember>()
                 .HasOne<Squad>()
                 .WithMany()
@@ -78,6 +86,7 @@ namespace LeagueSquadApi.Data
                 .WithMany()
                 .HasForeignKey(mas => mas.MatchId)
                 .OnDelete(DeleteBehavior.Cascade);
+
         }
     }
 }

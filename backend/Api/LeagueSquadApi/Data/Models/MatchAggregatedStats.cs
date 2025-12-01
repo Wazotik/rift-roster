@@ -11,6 +11,7 @@ namespace LeagueSquadApi.Data.Models
         [Column("match_id")]
         public string MatchId { get; set; } = null!;
 
+        // json in shape of List<RiotRawParticipantForStats>
         [Column("stats_json")]
         public string StatsJson { get; set; } = "[]";
 

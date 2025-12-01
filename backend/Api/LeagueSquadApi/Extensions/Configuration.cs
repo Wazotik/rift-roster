@@ -31,8 +31,8 @@ namespace LeagueSquadApi.Extensions
             // builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
             builder.Services.Configure<JwtOptions>(opts =>
             {
-                opts.Key      = jwtKey;
-                opts.Issuer   = jwtIssuer;
+                opts.Key = jwtKey;
+                opts.Issuer = jwtIssuer;
                 opts.Audience = jwtAudience;
                 opts.ExpiresMinutes = int.Parse(jwtSection["ExpiresMinutes"] ?? "10080"); // e.g. 7 days
             });
@@ -63,11 +63,11 @@ namespace LeagueSquadApi.Extensions
                             }
                             return Task.CompletedTask;
                         },
-                                    OnAuthenticationFailed = ctx =>
-                        {
-                            Console.WriteLine($"JWT failed: {ctx.Exception}");
-                            return Task.CompletedTask;
-                        }
+                        OnAuthenticationFailed = ctx =>
+            {
+                Console.WriteLine($"JWT failed: {ctx.Exception}");
+                return Task.CompletedTask;
+            }
                     };
                 });
 
@@ -105,6 +105,7 @@ namespace LeagueSquadApi.Extensions
             builder.Services.AddScoped<IRiotService, RiotService>();
             builder.Services.AddScoped<IParticipantService, ParticipantService>();
             builder.Services.AddScoped<IMatchAggregatedStatsService, MatchAggregatedStatsService>();
+            builder.Services.AddScoped<ISquadAggregatedStatsService, SquadAggregatedStatsService>();
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
@@ -136,9 +137,9 @@ namespace LeagueSquadApi.Extensions
 
             });
 
-            var allowedOriginsConfig = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS") 
+            var allowedOriginsConfig = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")
                 ?? builder.Configuration["AllowedOrigins"];
-            
+
             var allowedOrigins = new List<string>
             {
                 "http://localhost:5173",
@@ -172,11 +173,11 @@ namespace LeagueSquadApi.Extensions
         public static void RegisterMiddlewares(this WebApplication app)
         {
             app.UseCors("frontend");
-            
-            
+
+
             app.UseSwagger();
             app.UseSwaggerUI();
-            
+
             app.UseAuthentication();
             app.UseAuthorization();
         }

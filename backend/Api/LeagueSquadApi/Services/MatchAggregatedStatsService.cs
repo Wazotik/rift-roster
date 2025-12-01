@@ -49,6 +49,7 @@ namespace LeagueSquadApi.Services
 
             var participantsStatsStr = participants.Select(p => p.ParticipantsJson).ToList();
 
+            // create and fill my own representation of injested Riot particpant dto data
             List<RiotRawParticipantForStats> participantsStatsRaw = new();
             foreach (var jsonStr in participantsStatsStr)
             {

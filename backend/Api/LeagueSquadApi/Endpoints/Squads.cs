@@ -1,4 +1,5 @@
-﻿using LeagueSquadApi.Dtos;
+﻿using LeagueSquadApi.Data.Models;
+using LeagueSquadApi.Dtos;
 using LeagueSquadApi.Services.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -134,6 +135,12 @@ namespace LeagueSquadApi.Endpoints
                     return ResultStatusToIResultMapper<List<SquadMatchResponse>>.ToHttp(res);
                 }
             );
+
+            squads.MapGet("/{id}/stats", async (long id, ISquadAggregatedStatsService sass, IMatchAggregatedStatsService mass, IParticipantService ps, CancellationToken ct) =>
+            {
+                var res = await sass.GetAsync(id, mass, ps, ct);
+                return ResultStatusToIResultMapper<List<SquadAggregatedStats>>.ToHttp(res);
+            });
 
             squads.MapGet(
                 "/{id}/matches/{matchId}",

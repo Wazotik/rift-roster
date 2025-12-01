@@ -57,7 +57,7 @@
             bool Win
         );
 
-        // internal contract of riot data
+        // internal (not external api) contract of riot data
         public record RiotRawParticipantForStats(
             string Puuid,
             string RiotIdGameName,

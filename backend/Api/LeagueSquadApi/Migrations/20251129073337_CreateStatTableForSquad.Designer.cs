@@ -3,6 +3,7 @@ using System;
 using LeagueSquadApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace LeagueSquadApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251129073337_CreateStatTableForSquad")]
+    partial class CreateStatTableForSquad
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -254,8 +257,8 @@ namespace LeagueSquadApi.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<long>("SquadId")
-                        .HasColumnType("bigint")
+                    b.Property<int>("SquadId")
+                        .HasColumnType("integer")
                         .HasColumnName("squad_id");
 
                     b.Property<string>("StatName")
@@ -273,8 +276,6 @@ namespace LeagueSquadApi.Migrations
                         .HasColumnName("stat_value");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("SquadId");
 
                     b.ToTable("squad_aggregated_stats");
                 });
@@ -403,15 +404,6 @@ namespace LeagueSquadApi.Migrations
                     b.HasOne("LeagueSquadApi.Data.Models.Match", null)
                         .WithMany()
                         .HasForeignKey("MatchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("LeagueSquadApi.Data.Models.SquadAggregatedStats", b =>
-                {
-                    b.HasOne("LeagueSquadApi.Data.Models.Squad", null)
-                        .WithMany()
-                        .HasForeignKey("SquadId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
