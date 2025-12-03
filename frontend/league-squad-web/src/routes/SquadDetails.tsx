@@ -201,7 +201,7 @@ const SquadDetails = () => {
                                         </Group>
                                     </Box>
                                 </Group>
-                                {/* <Group gap="xs">
+                                <Group gap="xs">
                                     <Button
                                         leftSection={<IconEdit size={16} />}
                                         variant="light"
@@ -210,7 +210,7 @@ const SquadDetails = () => {
                                     >
                                         Edit Squad
                                     </Button>
-                                </Group> */}
+                                </Group>
                             </Group>
 
                             <Divider />
