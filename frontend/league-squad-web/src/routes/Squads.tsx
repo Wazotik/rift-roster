@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createSquad, getAllSquads } from "../api/squads";
 import type { CreateSquadRequest, SquadResponse } from "../types/SquadDtos";
-import { Container, Box, Button, Modal, TextInput, Title, Group, Stack, SimpleGrid, Text, Loader, Image } from "@mantine/core";
+import { Container, Box, Button, Modal, TextInput, Title, Group, Stack, SimpleGrid, Text, Loader, Image, px } from "@mantine/core";
 import { notifications } from '@mantine/notifications';
 import SquadCard from "../components/SquadCard";
 import { useDisclosure } from "@mantine/hooks";
@@ -67,7 +67,7 @@ const Squads = () => {
         <Container size="xl" py="xl">
             <Stack gap="xl">
                 {/* Page Header */}
-                <Group justify="space-between" align="center">
+                <Group justify="space-between" align="center" mt={"xl"}>
                     <Title order={1}>Your Squads</Title>
                     <Button onClick={open} size="md">
                         New Squad

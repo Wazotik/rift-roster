@@ -29,8 +29,8 @@ export const deleteSquad = async (id: number): Promise<number> => {
     return statusCode;
 };
 
-export const getMatches = async (id: number): Promise<SquadMatchResponse[]> => {
-    const matches = await apiGet<SquadMatchResponse[]>(`/squads/${id}/matches`);
+export const getMatches = async (id: number, forceRefresh: boolean = false): Promise<SquadMatchResponse[]> => {
+    const matches = await apiGet<SquadMatchResponse[]>(`/squads/${id}/matches`, { params: { forceRefresh: forceRefresh}});
     return matches;
 };
 

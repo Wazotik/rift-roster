@@ -19,3 +19,5 @@ export interface SquadMemberResponse {
 export type AddSquadMemberRequest = Pick<SquadMemberResponse, "puuid" | "role" | "alias">
 
 export type GetSquadMemberRequest = Pick<SquadMemberResponse, "squadId" | "puuid">
+
+export type DeleteSquadMemberRequest = Pick<SquadMemberResponse, "squadId" | "puuid">

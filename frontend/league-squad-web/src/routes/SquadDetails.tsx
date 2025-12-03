@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getMatchDetails, getMatches, getSquad } from '../api/squads';
 import type { SquadMatchResponse } from '../types/SquadMatchDtos';
@@ -9,41 +9,73 @@ import type { SquadMatchDetailsResponse } from '../types/SquadMatchDetailsRespon
 import ParticipantCard from '../components/ParticipantCard';
 import SquadMemberCard from '../components/SquadMemberCard';
 import type { ParticipantStats } from '../types/ParticipantDtos';
-import { getSquadMembers } from '../api/squadMembers';
-import type { SquadMemberResponse } from '../types/SquadMemberDtos';
+import { deleteSquadMember, getSquadMembers } from '../api/squadMembers';
+import type { DeleteSquadMemberRequest, SquadMemberResponse } from '../types/SquadMemberDtos';
 import type { SquadResponse } from '../types/SquadDtos';
+import { notifications } from '@mantine/notifications';
+import { queryClient } from '../lib/queryClient';
+import FindAndAddMemberModal from '../components/FindAndAddMemberModal';
+import { useDisclosure } from '@mantine/hooks';
+import UpdateSquadModal from '../components/UpdateSquadModal';
 
 const SquadDetails = () => {
     const { squadId } = useParams();
+    const squadIdNum = Number(squadId);
     const navigate = useNavigate();
     const [selectedMatch, setSelectedMatch] = useState<SquadMatchResponse | null>(null);
     const [selectedMatchId, setSelectedMatchId] = useState<string>("");
     const [participantsStats, setParticipantsStats] = useState<ParticipantStats[]>([]); // create type for this
+    const [updaterOpened, updaterHandlers] = useDisclosure(false);
+    const [finderOpened, finderHandlers] = useDisclosure(false);
 
-    const { data: matches, isLoading: isMatchesLoading, isError: isMatchesError, error: matchesError } = useQuery<SquadMatchResponse[], Error>({
-        queryKey: ["squads", squadId, "matches"],
-        queryFn: () => getMatches(Number(squadId)),
+    const { data: matches, isLoading: isMatchesLoading, isFetching: isMatchesFetching, isError: isMatchesError, error: matchesError } = useQuery<SquadMatchResponse[], Error>({
+        queryKey: ["squads", squadIdNum, "matches"],
+        queryFn: () => getMatches(squadIdNum, true),
         staleTime: 2 * 60 * 1000,
-        refetchOnWindowFocus: false
+        refetchOnWindowFocus: false,
     });
 
     const { data: matchDetails, refetch: refetchMatchDetails, isFetching: isMatchDetailsFetching, isLoading: isMatchDetailsLoading, isError: isMatchDetailsError, error: matchDetailsError } = useQuery<SquadMatchDetailsResponse, Error>({
-        queryKey: ["squads", squadId, "matches", selectedMatchId],
-        queryFn: () => getMatchDetails(Number(squadId), selectedMatchId),
+        queryKey: ["squads", squadIdNum, "matches", selectedMatchId],
+        queryFn: () => getMatchDetails(squadIdNum, selectedMatchId),
         enabled: selectedMatchId != "",
         refetchOnWindowFocus: false
     });
 
     const { data: squad, isLoading: isSquadLoading } = useQuery<SquadResponse, Error>({
-        queryKey: ["squads", squadId],
-        queryFn: () => getSquad(Number(squadId))
+        queryKey: ["squads", squadIdNum],
+        queryFn: () => getSquad(Number(squadIdNum))
     });
 
     const { data: squadMembers, isLoading: isSquadMembersLoading } = useQuery<SquadMemberResponse[], Error>({
-        queryKey: ["squads", squadId, "members"],
-        queryFn: () => getSquadMembers(Number(squadId))
+        queryKey: ["squads", squadIdNum, "members"],
+        queryFn: () => getSquadMembers(Number(squadIdNum))
     });
 
+    const { mutate: deleteSquadMemberMutate, isError: isDeleteSquadMemberError, error: squadMemberDeleteError } = useMutation<number, Error, DeleteSquadMemberRequest>({
+        mutationFn: deleteSquadMember,
+        onSuccess: async () => {
+            queryClient.invalidateQueries({ queryKey: ["squads", squadIdNum, "members"] });
+            await queryClient.fetchQuery({
+                queryKey: ["squads", squadIdNum, "matches"],
+                queryFn: () => getMatches(Number(squadIdNum), true)
+            })
+            queryClient.invalidateQueries({ queryKey: ["squads", squadIdNum, "matches"] });
+            notifications.show({
+                title: 'Squad Member Deleted',
+                message: 'Squad Member has been successfully deleted',
+                color: 'blue',
+            });
+        },
+        onError: () => {
+            console.log("delete squad member error", squadMemberDeleteError?.message);
+            notifications.show({
+                title: 'Error',
+                message: `Failed to delete squad member: ${squadMemberDeleteError?.message}`,
+                color: 'red',
+            });
+        },
+    });
 
     // Set the first match as selected when data loads
     useEffect(() => {
@@ -99,6 +131,11 @@ const SquadDetails = () => {
         setSelectedMatchId(match.matchId);
     };
 
+    // think about what should happen if a squad member gets deleted. delete and then force refresh match history?
+    const handleSquadMemberDelete = (squadMemberPuuid: string) => {
+        deleteSquadMemberMutate({ squadId: squadIdNum, puuid: squadMemberPuuid });
+    };
+
     const checkSquadMember = (puuid: string) => {
         if (squadMembers) {
             for (const squadMember of squadMembers) {
@@ -117,7 +154,7 @@ const SquadDetails = () => {
         );
     }
 
-    if (!matches || matches.length === 0) {
+    if (!isMatchesLoading && (!matches || matches.length === 0)) {
         return (
             <Container size="xl" py="xl">
                 <Box ta="center" py="xl">
@@ -164,15 +201,16 @@ const SquadDetails = () => {
                                         </Group>
                                     </Box>
                                 </Group>
-                                <Group gap="xs">
+                                {/* <Group gap="xs">
                                     <Button
                                         leftSection={<IconEdit size={16} />}
                                         variant="light"
                                         size="sm"
+                                        onClick={updaterHandlers.open}
                                     >
                                         Edit Squad
                                     </Button>
-                                </Group>
+                                </Group> */}
                             </Group>
 
                             <Divider />
@@ -185,6 +223,7 @@ const SquadDetails = () => {
                                         leftSection={<IconPlus size={16} />}
                                         variant="light"
                                         size="sm"
+                                        onClick={finderHandlers.open}
                                     >
                                         Add Member
                                     </Button>
@@ -201,8 +240,8 @@ const SquadDetails = () => {
                                             <Grid.Col key={member.puuid} span={{ base: 12, sm: 6, md: 4 }}>
                                                 <SquadMemberCard
                                                     member={member}
-                                                    onEdit={(m) => console.log('Edit', m)}
-                                                    onDelete={(m) => console.log('Delete', m)}
+                                                    // onEdit={(m) => console.log('Edit', m)}
+                                                    onDelete={(m) => handleSquadMemberDelete(m.puuid)}
                                                 />
                                             </Grid.Col>
                                         ))}
@@ -221,7 +260,7 @@ const SquadDetails = () => {
                 )}
 
                 {
-                    isMatchesLoading ?
+                    isMatchesFetching || isMatchesLoading ?
                         (
                             <Stack align="center" gap="md">
                                 <Loader size="lg" />
@@ -239,7 +278,7 @@ const SquadDetails = () => {
                                     <Grid.Col span={{ base: 12, md: 4 }}>
                                         <ScrollArea h={600} type="auto">
                                             <Stack gap="sm">
-                                                {matches.map((match) => {
+                                                {matches && matches.map((match) => {
                                                     const queueInfo = getQueueBadge(match.queueId);
                                                     const isSelected = selectedMatch?.matchId === match.matchId;
 
@@ -381,6 +420,8 @@ const SquadDetails = () => {
                 }
 
             </Stack>
+            {squad && squadIdNum && <FindAndAddMemberModal squadId={squadIdNum} opened={finderOpened} handlers={finderHandlers} />}
+            {squad && squadIdNum && <UpdateSquadModal squadId={squadIdNum} opened={updaterOpened} handlers={updaterHandlers} squad={squad} />}
         </Container>
     );
 }

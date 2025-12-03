@@ -132,6 +132,7 @@ namespace LeagueSquadApi.Endpoints
                 ) =>
                 {
                     var res = await ss.GetSquadMatchesAsync(id, rs, ms, sms, ct, forceRefresh);
+                    Console.WriteLine($"force refresh: {forceRefresh}");
                     return ResultStatusToIResultMapper<List<SquadMatchResponse>>.ToHttp(res);
                 }
             );

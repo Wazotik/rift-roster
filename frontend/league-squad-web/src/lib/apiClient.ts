@@ -7,7 +7,7 @@ const authAxios = axios.create({
     baseURL: BASE_ADDRESS
 });
 
-export const apiGet = async <TResponse>(path: string, overrideConfig: object = {}): Promise<TResponse> => {
+export const apiGet = async <TResponse>(path: string, overrideConfig: object = {}, forceRefresh: boolean = false): Promise<TResponse> => {
     try {
         const res = await authAxios.get<TResponse>(path, overrideConfig);
         // return Promise.resolve(res.data); // ik wrapping with promise is not needed, but it helps my understanding 
