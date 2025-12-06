@@ -111,4 +111,3 @@ React • TypeScript • Vite • Mantine • React Query • Axios
 .NET 9 • C# • PostgreSQL • Entity Framework Core • Riot Games API  
 
 
-dotnet run
