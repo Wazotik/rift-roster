@@ -110,11 +110,5 @@ React • TypeScript • Vite • Mantine • React Query • Axios
 **Backend:**  
 .NET 9 • C# • PostgreSQL • Entity Framework Core • Riot Games API  
 
----
 
-## ⚙️ Running the Project (Local)
-
-### Backend
-```bash
-cd backend
 dotnet run
