@@ -20,7 +20,7 @@ It gives players a way to improve together, celebrate progress, and understand h
 | Player Data Sync | Retrieve and update player details via Riot API | ✅ Complete |
 | Squad Dashboard | View roster, matches, and basic team metrics | 🚧 In Progress |
 | Modern Frontend UI | React + Mantine + React Query | 🚧 In Progress |
-| Authentication | Optional Google or guest login | ⏳ Planned |
+| Authentication | Optional Google or guest login | ✅ Complete |
 
 ---
 
